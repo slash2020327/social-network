@@ -4,51 +4,45 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import org.apache.commons.dbutils.DbUtils;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import by.qa.connectionproject.connection.ConnectionPool;
 import by.qa.connectionproject.dao.jdbc.IAbstractDAO;
 import by.qa.connectionproject.dao.jdbc.IProfileDAO;
 import by.qa.connectionproject.models.Album;
 import by.qa.connectionproject.models.Group;
 import by.qa.connectionproject.models.Profile;
-import by.qa.connectionproject.models.User;
 import by.qa.connectionproject.models.file.Music;
 import by.qa.connectionproject.models.file.Video;
 
 public class ProfileDAO implements IProfileDAO {
-	
+
 	private final static String GET_PROFILE_BY_ID = "SELECT * FROM Profiles WHERE id=?";
 	private final static String GET_ALL_PROFILES = "SELECT * FROM Profiles";
 	private final static String DELETE_PROFILE_BY_ID = "DELETE FROM Profiles WHERE id=?";
-	private final static String GET_PROFILE_BY_USER_ID = "SELECT Profiles.id, Profiles.status, Profiles.login, Profiles.password FROM Profiles " + 
-			"INNER JOIN Users ON Users.profile_id=Profiles.id WHERE Users.id IN (?)";
-	private final static String GET_PROFILE_BY_MUSIC_ID = "SELECT Profiles.id, Profiles.status, Profiles.login, Profiles.password FROM Profiles " + 
-			"INNER JOIN Music ON Profiles.id=Music.profile_id WHERE Music.id IN(?)";
-	private final static String GET_PROFILE_BY_VIDEO_ID = "SELECT Profiles.id, Profiles.status, Profiles.login, Profiles.password FROM Profiles " + 
-			"INNER JOIN Videos ON Profiles.id=Videos.profile_id WHERE Videos.id IN(?)";
-	private final static String GET_PROFILE_BY_ALBUM_ID = "SELECT Profiles.id, Profiles.status, Profiles.login, Profiles.password FROM Profiles " + 
-			"INNER JOIN Albums ON Profiles.id=Albums.profile_id WHERE Albums.id IN(?)";
-	private final static String INSERT_USER = "INSERT INTO Users (profile_id, first_name, last_name, phone_number, city_id) VALUES (?, ?, ?, ?, ?)";
+	private final static String GET_PROFILE_BY_USER_ID = "SELECT Profiles.id, Profiles.status, Profiles.login, Profiles.password FROM Profiles "
+			+ "INNER JOIN Users ON Users.profile_id=Profiles.id WHERE Users.id IN (?)";
+	private final static String GET_PROFILE_BY_MUSIC_ID = "SELECT Profiles.id, Profiles.status, Profiles.login, Profiles.password FROM Profiles "
+			+ "INNER JOIN Music ON Profiles.id=Music.profile_id WHERE Music.id IN(?)";
+	private final static String GET_PROFILE_BY_VIDEO_ID = "SELECT Profiles.id, Profiles.status, Profiles.login, Profiles.password FROM Profiles "
+			+ "INNER JOIN Videos ON Profiles.id=Videos.profile_id WHERE Videos.id IN(?)";
+	private final static String GET_PROFILE_BY_ALBUM_ID = "SELECT Profiles.id, Profiles.status, Profiles.login, Profiles.password FROM Profiles "
+			+ "INNER JOIN Albums ON Profiles.id=Albums.profile_id WHERE Albums.id IN(?)";
 	private final static String INSERT_PROFILE = "INSERT INTO Profiles (status, login, password) VALUES (?, ?, ?)";
 	private final static String UPDATE_PROFILE = "UPDATE Profiles SET status = ?, login = ?, password = ? WHERE (id = ?)";
-	private final static String GET_ALL_MUSIC_BY_PROFILE_ID = "SELECT Music.id, Music.artist_name, Music.song_name, Music.publication_date, Music.profile_id FROM Music " + 
-			"INNER JOIN Profiles ON Profiles.id=Music.profile_id WHERE Profiles.id IN(?)";
-	private final static String GET_ALL_VIDEO_BY_PROFILE_ID = "SELECT Videos.id, Videos.name, Videos.publication_date, Videos.profile_id FROM Videos " + 
-			"INNER JOIN Profiles ON Profiles.id=Videos.profile_id WHERE Profiles.id IN(?)";
-	private final static String GET_ALL_ALBUMS_BY_PROFILE_ID = "SELECT Albums.id, Albums.album_name, Albums.profile_id FROM Albums " + 
-			"INNER JOIN Profiles ON Profiles.id=Albums.profile_id WHERE Profiles.id IN(?)";
-	private final static String GET_ALL_GROUPS_BY_PROFILE_ID = "SELECT Public_groups.id, Public_groups.name, Public_groups.description FROM Public_groups " + 
-			"INNER JOIN Groups_has_profiles ON Groups_has_profiles.group_id=Public_groups.id INNER JOIN Profiles ON Profiles.id=Groups_has_profiles.profile_id WHERE Profiles.id IN(?)";
+	private final static String GET_ALL_MUSIC_BY_PROFILE_ID = "SELECT Music.id, Music.artist_name, Music.song_name, Music.publication_date, Music.profile_id FROM Music "
+			+ "INNER JOIN Profiles ON Profiles.id=Music.profile_id WHERE Profiles.id IN(?)";
+	private final static String GET_ALL_VIDEO_BY_PROFILE_ID = "SELECT Videos.id, Videos.name, Videos.publication_date, Videos.profile_id FROM Videos "
+			+ "INNER JOIN Profiles ON Profiles.id=Videos.profile_id WHERE Profiles.id IN(?)";
+	private final static String GET_ALL_ALBUMS_BY_PROFILE_ID = "SELECT Albums.id, Albums.album_name, Albums.profile_id FROM Albums "
+			+ "INNER JOIN Profiles ON Profiles.id=Albums.profile_id WHERE Profiles.id IN(?)";
+	private final static String GET_ALL_GROUPS_BY_PROFILE_ID = "SELECT Public_groups.id, Public_groups.name, Public_groups.description FROM Public_groups "
+			+ "INNER JOIN Groups_has_profiles ON Groups_has_profiles.group_id=Public_groups.id INNER JOIN Profiles ON Profiles.id=Groups_has_profiles.profile_id WHERE Profiles.id IN(?)";
 	private final static String PHOTO_NUMBER = "SELECT COUNT(Photos.id) FROM Profiles LEFT JOIN Albums ON Albums.profile_id=Profiles.id "
 			+ "LEFT JOIN Photos ON Photos.id=Albums.id WHERE Profiles.id IN(?) GROUP BY Profiles.id";
 	private final static String MUSIC_NUMBER = "SELECT COUNT(Music.id) FROM Profiles LEFT JOIN Music ON Music.profile_id=Profiles.id "
@@ -56,6 +50,10 @@ public class ProfileDAO implements IProfileDAO {
 	private final static String VIDEO_NUMBER = "SELECT COUNT(Videos.id) FROM Profiles LEFT JOIN Videos ON Videos.profile_id=Profiles.id "
 			+ "WHERE Profiles.id IN(?) GROUP BY Profiles.id";
 	private static Logger logger = LogManager.getLogger();
+
+	public static String getInsertProfile() {
+		return INSERT_PROFILE;
+	}
 
 	@Override
 	public Profile getEntityById(Integer id) {
@@ -116,7 +114,7 @@ public class ProfileDAO implements IProfileDAO {
 		}
 		return profile;
 	}
-	
+
 	@Override
 	public void delete(Integer id) {
 		Connection connection = null;
@@ -134,67 +132,28 @@ public class ProfileDAO implements IProfileDAO {
 		}
 	}
 
-	@Override
-	public void create(User user, Profile profile) throws SQLException {
-		Connection connection = null;
-		PreparedStatement statementUser = null;
-		PreparedStatement statementProfile = null;
-		ResultSet resultSet = null;
-		try {
-			connection = ConnectionPool.getInstance().takeConnection();
-			connection.setAutoCommit(false);
-			statementProfile = connection.prepareStatement(INSERT_PROFILE, Statement.RETURN_GENERATED_KEYS);
-			statementProfile.setString(1, profile.getStatus());
-			statementProfile.setString(2, profile.getLogin());
-			statementProfile.setString(3, profile.getPassword());
-			statementProfile.executeUpdate();
-			statementUser = connection.prepareStatement(INSERT_USER);
-			statementUser.setString(2, user.getFirstName());
-			statementUser.setString(3, user.getLastName());
-			statementUser.setString(4, user.getPhoneNumber());
-			statementUser.setInt(5, user.getCity().getId());
-			resultSet = statementProfile.getGeneratedKeys();
-			if (resultSet.next()) {
-				statementUser.setInt(1, resultSet.getInt(1));
-			}
-			statementUser.executeUpdate();
-			connection.commit();
-		} catch (SQLException e) {
-			logger.log(Level.ERROR, "Creation error", e);
-			connection.rollback();
-		} finally {
-			if (connection != null) {
-				connection.setAutoCommit(true);
-			}
-			DbUtils.close(resultSet);
-			DbUtils.close(statementProfile);
-			DbUtils.close(statementUser);
-			ConnectionPool.getInstance().releaseConnection(connection);
-		}
-	}
-	
-//	@Override
-//	public void create(Profile profile) {
-//		Connection connection = null;
-//		PreparedStatement statement = null;
-//		try {
-//			connection = ConnectionPool.getInstance().takeConnection();
-//			statement = connection.prepareStatement(INSERT_PROFILE);
-//			statement.setInt(1, profile.getUser().getId());
-//			statement.setString(2, profile.getStatus());
-//			statement.setString(3, profile.getLogin());
-//			statement.setString(4, profile.getPassword());
-//			statement.executeUpdate();
-//		} catch (SQLException e) {
-//			logger.log(Level.ERROR, "Creation error", e);
-//		} finally {
-//			IAbstractDAO.closePreparedStatement(statement);
-//			ConnectionPool.getInstance().releaseConnection(connection);
-//		}
-//	}
+	// @Override
+	// public void create(Profile profile) {
+	// Connection connection = null;
+	// PreparedStatement statement = null;
+	// try {
+	// connection = ConnectionPool.getInstance().takeConnection();
+	// statement = connection.prepareStatement(INSERT_PROFILE);
+	// statement.setInt(1, profile.getUser().getId());
+	// statement.setString(2, profile.getStatus());
+	// statement.setString(3, profile.getLogin());
+	// statement.setString(4, profile.getPassword());
+	// statement.executeUpdate();
+	// } catch (SQLException e) {
+	// logger.log(Level.ERROR, "Creation error", e);
+	// } finally {
+	// IAbstractDAO.closePreparedStatement(statement);
+	// ConnectionPool.getInstance().releaseConnection(connection);
+	// }
+	// }
 
 	@Override
-	public void update(Profile profile) throws SQLException {
+	public void update(Profile profile) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
@@ -208,17 +167,19 @@ public class ProfileDAO implements IProfileDAO {
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
-			connection.rollback();
 			logger.log(Level.ERROR, "Update error", e);
-		} finally {
-			if (connection != null) {
-				connection.setAutoCommit(true);
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				logger.log(Level.ERROR, "Connection rollback error", e);
 			}
+		} finally {
+			IAbstractDAO.setTrueAutoCommit(connection);
 			IAbstractDAO.closePreparedStatement(statement);
 			ConnectionPool.getInstance().releaseConnection(connection);
 		}
 	}
-	
+
 	@Override
 	public List<Music> getAllMusicByProfileId(Integer id) {
 		List<Music> musicCollection = new ArrayList<>();
@@ -235,7 +196,7 @@ public class ProfileDAO implements IProfileDAO {
 				music.setId(resultSet.getInt("id"));
 				music.setArtistName(resultSet.getString("artist_name"));
 				music.setSongName(resultSet.getString("song_name"));
-				Timestamp dateTime = resultSet.getTimestamp("publication_date"); 
+				Timestamp dateTime = resultSet.getTimestamp("publication_date");
 				Date date = new Date(dateTime.getTime());
 				music.setPublicationDate(date);
 				music.setProfileId(resultSet.getInt("profile_id"));
@@ -250,7 +211,7 @@ public class ProfileDAO implements IProfileDAO {
 		}
 		return musicCollection;
 	}
-	
+
 	@Override
 	public List<Video> getAllVideoByProfileId(Integer id) {
 		List<Video> videos = new ArrayList<>();
@@ -281,7 +242,7 @@ public class ProfileDAO implements IProfileDAO {
 		}
 		return videos;
 	}
-	
+
 	@Override
 	public List<Album> getAllAlbumsByProfileId(Integer id) {
 		List<Album> albums = new ArrayList<>();
@@ -309,7 +270,7 @@ public class ProfileDAO implements IProfileDAO {
 		}
 		return albums;
 	}
-	
+
 	@Override
 	public List<Group> getAllGroupsByProfileId(Integer id) {
 		List<Group> groups = new ArrayList<>();
@@ -337,7 +298,7 @@ public class ProfileDAO implements IProfileDAO {
 		}
 		return groups;
 	}
-	
+
 	@Override
 	public Profile getProfileByUserId(Integer id) {
 		Profile profile = new Profile();
@@ -360,7 +321,7 @@ public class ProfileDAO implements IProfileDAO {
 		}
 		return profile;
 	}
-	
+
 	@Override
 	public Profile getProfileByMusicId(Integer id) {
 		Profile profile = new Profile();
@@ -383,7 +344,7 @@ public class ProfileDAO implements IProfileDAO {
 		}
 		return profile;
 	}
-	
+
 	@Override
 	public Profile getProfileByVideoId(Integer id) {
 		Profile profile = new Profile();
@@ -406,7 +367,7 @@ public class ProfileDAO implements IProfileDAO {
 		}
 		return profile;
 	}
-	
+
 	@Override
 	public Profile getProfileByAlbumId(Integer id) {
 		Profile profile = new Profile();
@@ -429,7 +390,7 @@ public class ProfileDAO implements IProfileDAO {
 		}
 		return profile;
 	}
-	
+
 	@Override
 	public int getPhotoNumberByProfileId(Integer id) {
 		Connection connection = null;

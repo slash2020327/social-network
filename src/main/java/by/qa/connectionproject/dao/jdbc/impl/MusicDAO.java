@@ -81,7 +81,7 @@ public class MusicDAO implements IMusicDAO {
 			music.setId(resultSet.getInt("id"));
 			music.setArtistName(resultSet.getString("artist_name"));
 			music.setSongName(resultSet.getString("song_name"));
-			Timestamp dateTime = resultSet.getTimestamp("publication_date"); 
+			Timestamp dateTime = resultSet.getTimestamp("publication_date");
 			Date date = new Date(dateTime.getTime());
 			music.setPublicationDate(date);
 			music.setProfileId(resultSet.getInt("profile_id"));
@@ -90,7 +90,7 @@ public class MusicDAO implements IMusicDAO {
 		}
 		return music;
 	}
-	
+
 	@Override
 	public void delete(Integer id) {
 		Connection connection = null;
@@ -109,7 +109,7 @@ public class MusicDAO implements IMusicDAO {
 	}
 
 	@Override
-	public void create(Music music) throws SQLException {
+	public void create(Music music) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
@@ -124,19 +124,21 @@ public class MusicDAO implements IMusicDAO {
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
-			connection.rollback();
 			logger.log(Level.ERROR, "Creation error", e);
-		} finally {
-			if (connection != null) {
-				connection.setAutoCommit(true);
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				logger.log(Level.ERROR, "Connection rollback error", e);
 			}
+		} finally {
+			IAbstractDAO.setTrueAutoCommit(connection);
 			IAbstractDAO.closePreparedStatement(statement);
 			ConnectionPool.getInstance().releaseConnection(connection);
 		}
 	}
-	
+
 	@Override
-	public void update(Music music) throws SQLException {
+	public void update(Music music) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
@@ -151,15 +153,17 @@ public class MusicDAO implements IMusicDAO {
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
-			connection.rollback();
 			logger.log(Level.ERROR, "Update error", e);
-		} finally {
-			if (connection != null) {
-				connection.setAutoCommit(true);
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				logger.log(Level.ERROR, "Connection rollback error", e);
 			}
+		} finally {
+			IAbstractDAO.setTrueAutoCommit(connection);
 			IAbstractDAO.closePreparedStatement(statement);
 			ConnectionPool.getInstance().releaseConnection(connection);
 		}
 	}
-	
+
 }

@@ -21,10 +21,10 @@ public class CountryDAO implements ICountryDAO {
 
 	private final static String GET_COUNTRY_BY_ID = "SELECT * FROM Countries WHERE id=?";
 	private final static String GET_ALL_COUNTRIES = "SELECT * FROM Countries";
-	private final static String GET_COUNTRY_BY_CITY_ID = "SELECT Countries.id, Countries.country_name FROM Countries " + 
-			"INNER JOIN Cities ON Cities.country_id=Countries.id WHERE Cities.id IN(?)";
-	private final static String GET_ALL_CITIES_BY_COUNTRY_ID = "SELECT Cities.id, Cities.city_name, Cities.country_id FROM Cities " + 
-			"INNER JOIN Countries ON Countries.id=Cities.country_id WHERE Countries.id IN(?)";
+	private final static String GET_COUNTRY_BY_CITY_ID = "SELECT Countries.id, Countries.country_name FROM Countries "
+			+ "INNER JOIN Cities ON Cities.country_id=Countries.id WHERE Cities.id IN(?)";
+	private final static String GET_ALL_CITIES_BY_COUNTRY_ID = "SELECT Cities.id, Cities.city_name, Cities.country_id FROM Cities "
+			+ "INNER JOIN Countries ON Countries.id=Cities.country_id WHERE Countries.id IN(?)";
 	private final static String DELETE_COUNTRY_BY_ID = "DELETE FROM Countries WHERE id=?";
 	private final static String INSERT_COUNTRY = "INSERT INTO Countries (country_name) VALUES (?)";
 	private final static String UPDATE_COUNTRY = "UPDATE Countries SET country_name = ? WHERE (id = ?)";
@@ -87,7 +87,7 @@ public class CountryDAO implements ICountryDAO {
 		}
 		return country;
 	}
-	
+
 	@Override
 	public void delete(Integer id) {
 		Connection connection = null;
@@ -106,7 +106,7 @@ public class CountryDAO implements ICountryDAO {
 	}
 
 	@Override
-	public void create(Country country) throws SQLException {
+	public void create(Country country) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
@@ -117,19 +117,21 @@ public class CountryDAO implements ICountryDAO {
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
-			connection.rollback();
 			logger.log(Level.ERROR, "Creation error", e);
-		} finally {
-			if (connection != null) {
-				connection.setAutoCommit(true);
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				logger.log(Level.ERROR, "Connection rollback error", e);
 			}
+		} finally {
+			IAbstractDAO.setTrueAutoCommit(connection);
 			IAbstractDAO.closePreparedStatement(statement);
 			ConnectionPool.getInstance().releaseConnection(connection);
 		}
 	}
-	
+
 	@Override
-	public void update(Country country) throws SQLException {
+	public void update(Country country) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
@@ -141,17 +143,19 @@ public class CountryDAO implements ICountryDAO {
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
-			connection.rollback();
 			logger.log(Level.ERROR, "Update error", e);
-		} finally {
-			if (connection != null) {
-				connection.setAutoCommit(true);
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				logger.log(Level.ERROR, "Connection rollback error", e);
 			}
+		} finally {
+			IAbstractDAO.setTrueAutoCommit(connection);
 			IAbstractDAO.closePreparedStatement(statement);
 			ConnectionPool.getInstance().releaseConnection(connection);
 		}
 	}
-	
+
 	@Override
 	public List<City> getAllCitiesByCountryId(Integer id) {
 		List<City> cities = new ArrayList<>();
@@ -181,7 +185,7 @@ public class CountryDAO implements ICountryDAO {
 		}
 		return cities;
 	}
-	
+
 	@Override
 	public Country getCountryByCityId(Integer id) {
 		Country country = new Country();

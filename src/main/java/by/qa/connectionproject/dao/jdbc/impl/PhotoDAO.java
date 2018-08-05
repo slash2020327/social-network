@@ -19,8 +19,8 @@ import by.qa.connectionproject.dao.jdbc.IAbstractDAO;
 import by.qa.connectionproject.dao.jdbc.IPhotoDAO;
 import by.qa.connectionproject.models.file.Photo;
 
-public class PhotoDAO implements IPhotoDAO{
-	
+public class PhotoDAO implements IPhotoDAO {
+
 	private final static String GET_PHOTO_BY_ID = "SELECT * FROM Photos WHERE id=?";
 	private final static String GET_ALL_PHOTOS = "SELECT * FROM Photos";
 	private final static String DELETE_PHOTO_BY_ID = "DELETE FROM Photos WHERE id=?";
@@ -75,11 +75,11 @@ public class PhotoDAO implements IPhotoDAO{
 		}
 		return photos;
 	}
-	
+
 	private Photo setPhotoFields(ResultSet resultSet, Photo photo) {
 		try {
 			photo.setId(resultSet.getInt("id"));
-			Timestamp dateTime = resultSet.getTimestamp("publication_date"); 
+			Timestamp dateTime = resultSet.getTimestamp("publication_date");
 			Date date = new Date(dateTime.getTime());
 			photo.setPublicationDate(date);
 			photo.setAlbumId(resultSet.getInt("album_id"));
@@ -88,7 +88,7 @@ public class PhotoDAO implements IPhotoDAO{
 		}
 		return photo;
 	}
-	
+
 	@Override
 	public void delete(Integer id) {
 		Connection connection = null;
@@ -107,7 +107,7 @@ public class PhotoDAO implements IPhotoDAO{
 	}
 
 	@Override
-	public void create(Photo photo) throws SQLException {
+	public void create(Photo photo) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
@@ -120,19 +120,21 @@ public class PhotoDAO implements IPhotoDAO{
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
-			connection.rollback();
 			logger.log(Level.ERROR, "Creation error", e);
-		} finally {
-			if (connection != null) {
-				connection.setAutoCommit(true);
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				logger.log(Level.ERROR, "Connection rollback error", e);
 			}
+		} finally {
+			IAbstractDAO.setTrueAutoCommit(connection);
 			IAbstractDAO.closePreparedStatement(statement);
 			ConnectionPool.getInstance().releaseConnection(connection);
 		}
 	}
-	
+
 	@Override
-	public void update(Photo photo) throws SQLException {
+	public void update(Photo photo) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
@@ -145,12 +147,14 @@ public class PhotoDAO implements IPhotoDAO{
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
-			connection.rollback();
 			logger.log(Level.ERROR, "Update error", e);
-		} finally {
-			if (connection != null) {
-				connection.setAutoCommit(true);
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				logger.log(Level.ERROR, "Connection rollback error", e);
 			}
+		} finally {
+			IAbstractDAO.setTrueAutoCommit(connection);
 			IAbstractDAO.closePreparedStatement(statement);
 			ConnectionPool.getInstance().releaseConnection(connection);
 		}

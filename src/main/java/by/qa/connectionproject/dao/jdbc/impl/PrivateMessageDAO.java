@@ -73,14 +73,14 @@ public class PrivateMessageDAO implements IPrivateMessage {
 		}
 		return privateMessages;
 	}
-	
+
 	private PrivateMessage setPrivateMessageFields(ResultSet resultSet, PrivateMessage privateMessage) {
 		try {
 			privateMessage.setId(resultSet.getInt("id"));
 			privateMessage.setFromUserId(resultSet.getInt("from_user"));
 			privateMessage.setToUserId(resultSet.getInt("to_user"));
 			privateMessage.setMessageText(resultSet.getString("text"));
-			Timestamp dateTime = resultSet.getTimestamp("date_send"); 
+			Timestamp dateTime = resultSet.getTimestamp("date_send");
 			Date date = new Date(dateTime.getTime());
 			privateMessage.setDateSend(date);
 			privateMessage.setDialogId(resultSet.getInt("dialog_id"));
@@ -89,7 +89,7 @@ public class PrivateMessageDAO implements IPrivateMessage {
 		}
 		return privateMessage;
 	}
-	
+
 	@Override
 	public void delete(Integer id) {
 		Connection connection = null;
@@ -108,7 +108,7 @@ public class PrivateMessageDAO implements IPrivateMessage {
 	}
 
 	@Override
-	public void create(PrivateMessage privateMessage) throws SQLException {
+	public void create(PrivateMessage privateMessage) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
@@ -124,19 +124,21 @@ public class PrivateMessageDAO implements IPrivateMessage {
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
-			connection.rollback();
 			logger.log(Level.ERROR, "Creation error", e);
-		} finally {
-			if (connection != null) {
-				connection.setAutoCommit(true);
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				logger.log(Level.ERROR, "Connection rollback error", e);
 			}
+		} finally {
+			IAbstractDAO.setTrueAutoCommit(connection);
 			IAbstractDAO.closePreparedStatement(statement);
 			ConnectionPool.getInstance().releaseConnection(connection);
 		}
 	}
-	
+
 	@Override
-	public void update(PrivateMessage privateMessage) throws SQLException {
+	public void update(PrivateMessage privateMessage) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
@@ -152,12 +154,14 @@ public class PrivateMessageDAO implements IPrivateMessage {
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
-			connection.rollback();
 			logger.log(Level.ERROR, "Update error", e);
-		} finally {
-			if (connection != null) {
-				connection.setAutoCommit(true);
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				logger.log(Level.ERROR, "Connection rollback error", e);
 			}
+		} finally {
+			IAbstractDAO.setTrueAutoCommit(connection);
 			IAbstractDAO.closePreparedStatement(statement);
 			ConnectionPool.getInstance().releaseConnection(connection);
 		}

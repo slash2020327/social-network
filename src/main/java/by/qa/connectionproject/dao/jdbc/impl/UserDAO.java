@@ -4,12 +4,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import org.apache.commons.dbutils.DbUtils;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,10 +26,10 @@ public class UserDAO implements IUserDAO {
 	private final static String GET_USER_BY_ID = "SELECT * FROM Users WHERE id=?";
 	private final static String GET_ALL_USERS = "SELECT * FROM Users";
 	private final static String DELETE_USER_BY_ID = "DELETE FROM Users WHERE id=?";
-	private final static String GET_ALL_DIALOGUES_BY_USER_ID = "SELECT Dialogues.id, Dialogues.user_id, Dialogues.creation_date FROM Dialogues " + 
-			"INNER JOIN Users ON Users.id=Dialogues.user_id WHERE Users.id IN(?)";
-	private final static String GET_USER_BY_DIALOG_ID = "SELECT Users.id, Users.profile_id, Users.first_name, Users.last_name, Users.phone_number, Users.city_id FROM Users " + 
-			"INNER JOIN Dialogues ON Dialogues.user_id=Users.id WHERE Dialogues.id IN(?)";
+	private final static String GET_ALL_DIALOGUES_BY_USER_ID = "SELECT Dialogues.id, Dialogues.user_id, Dialogues.creation_date FROM Dialogues "
+			+ "INNER JOIN Users ON Users.id=Dialogues.user_id WHERE Users.id IN(?)";
+	private final static String GET_USER_BY_DIALOG_ID = "SELECT Users.id, Users.profile_id, Users.first_name, Users.last_name, Users.phone_number, Users.city_id FROM Users "
+			+ "INNER JOIN Dialogues ON Dialogues.user_id=Users.id WHERE Dialogues.id IN(?)";
 	private final static String GET_FROM_USER_BY_MESSAGE_ID = "SELECT Users.id, Users.profile_id, Users.first_name, Users.last_name, Users.phone_number, Users.city_id FROM Users "
 			+ "INNER JOIN Private_messages ON Private_messages.from_user=Users.id WHERE Private_messages.id IN(?)";
 	private final static String GET_TO_USER_BY_MESSAGE_ID = "SELECT Users.id, Users.profile_id, Users.first_name, Users.last_name, Users.phone_number, Users.city_id FROM Users "
@@ -43,9 +41,12 @@ public class UserDAO implements IUserDAO {
 	private final static String GET_ALL_FRIENDSHIP_BY_USER_ID = "SELECT Friendship.id, Friendship.user1_id, Friendship.user2_id, Friendship.status FROM Friendship "
 			+ "INNER JOIN Users ON Users.id=Friendship.user1_id WHERE Users.id IN(?)";
 	private final static String INSERT_USER = "INSERT INTO Users (profile_id, first_name, last_name, phone_number, city_id) VALUES (?, ?, ?, ?, ?)";
-	private final static String INSERT_PROFILE = "INSERT INTO Profiles (status, login, password) VALUES (?, ?, ?)";
 	private final static String UPDATE_USER = "UPDATE Users SET profile_id = ?, first_name = ?, last_name = ?, phone_number = ?, city_id = ? WHERE (id = ?)";
 	private static Logger logger = LogManager.getLogger();
+
+	public static String getInsertUser() {
+		return INSERT_USER;
+	}
 
 	@Override
 	public User getEntityById(Integer id) {
@@ -130,45 +131,6 @@ public class UserDAO implements IUserDAO {
 		}
 	}
 
-	@Override
-	public void create(User user, Profile profile) throws SQLException {
-		Connection connection = null;
-		PreparedStatement statementUser = null;
-		PreparedStatement statementProfile = null;
-		ResultSet resultSet = null;
-		try {
-			connection = ConnectionPool.getInstance().takeConnection();
-			connection.setAutoCommit(false);
-			statementProfile = connection.prepareStatement(INSERT_PROFILE, Statement.RETURN_GENERATED_KEYS);
-			statementProfile.setString(1, profile.getStatus());
-			statementProfile.setString(2, profile.getLogin());
-			statementProfile.setString(3, profile.getPassword());
-			statementProfile.executeUpdate();
-			statementUser = connection.prepareStatement(INSERT_USER);
-			statementUser.setString(2, user.getFirstName());
-			statementUser.setString(3, user.getLastName());
-			statementUser.setString(4, user.getPhoneNumber());
-			statementUser.setInt(5, user.getCity().getId());
-			resultSet = statementProfile.getGeneratedKeys();
-			if (resultSet.next()) {
-				statementUser.setInt(1, resultSet.getInt(1));
-			}
-			statementUser.executeUpdate();
-			connection.commit();
-		} catch (SQLException e) {
-			logger.log(Level.ERROR, "Creation error", e);
-			connection.rollback();
-		} finally {
-			if (connection != null) {
-				connection.setAutoCommit(true);
-			}
-			DbUtils.close(resultSet);
-			DbUtils.close(statementProfile);
-			DbUtils.close(statementUser);
-			ConnectionPool.getInstance().releaseConnection(connection);
-		}
-	}
-
 	// @Override
 	// public void create(User user) {
 	// Connection connection = null;
@@ -190,7 +152,7 @@ public class UserDAO implements IUserDAO {
 	// }
 
 	@Override
-	public void update(User user) throws SQLException {
+	public void update(User user) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
@@ -206,12 +168,14 @@ public class UserDAO implements IUserDAO {
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
-			connection.rollback();
 			logger.log(Level.ERROR, "Update error", e);
-		} finally {
-			if (connection != null) {
-				connection.setAutoCommit(true);
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				logger.log(Level.ERROR, "Connection rollback error", e);
 			}
+		} finally {
+			IAbstractDAO.setTrueAutoCommit(connection);
 			IAbstractDAO.closePreparedStatement(statement);
 			ConnectionPool.getInstance().releaseConnection(connection);
 		}
@@ -232,7 +196,7 @@ public class UserDAO implements IUserDAO {
 				Dialog dialog = new Dialog();
 				dialog.setId(resultSet.getInt("id"));
 				dialog.setDialogOwnerId(resultSet.getInt("user_id"));
-				Timestamp dateTime = resultSet.getTimestamp("creation_date"); 
+				Timestamp dateTime = resultSet.getTimestamp("creation_date");
 				Date date = new Date(dateTime.getTime());
 				dialog.setCreationDate(date);
 				dialogues.add(dialog);
@@ -298,7 +262,7 @@ public class UserDAO implements IUserDAO {
 		}
 		return user;
 	}
-	
+
 	@Override
 	public User getFromUserByPrivateMessage(Integer id) {
 		User user = new User();

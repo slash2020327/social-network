@@ -71,7 +71,7 @@ public class FriendshipDAO implements IFriendshipDAO {
 		}
 		return friendshipCollection;
 	}
-	
+
 	private Friendship setFriendshipFields(ResultSet resultSet, Friendship friendship) {
 		try {
 			friendship.setId(resultSet.getInt("id"));
@@ -83,7 +83,7 @@ public class FriendshipDAO implements IFriendshipDAO {
 		}
 		return friendship;
 	}
-	
+
 	@Override
 	public void delete(Integer id) {
 		Connection connection = null;
@@ -102,7 +102,7 @@ public class FriendshipDAO implements IFriendshipDAO {
 	}
 
 	@Override
-	public void create(Friendship friendship) throws SQLException {
+	public void create(Friendship friendship) {
 		Connection connection = null;
 		PreparedStatement statementForUserOne = null;
 		PreparedStatement statementForUserTwo = null;
@@ -121,19 +121,21 @@ public class FriendshipDAO implements IFriendshipDAO {
 			statementForUserTwo.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
-			connection.rollback();
 			logger.log(Level.ERROR, "Creation error", e);
-		} finally {
-			if (connection != null) {
-				connection.setAutoCommit(true);
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				logger.log(Level.ERROR, "Connection rollback error", e);
 			}
+		} finally {
+			IAbstractDAO.setTrueAutoCommit(connection);
 			IAbstractDAO.closePreparedStatement(statementForUserOne);
 			ConnectionPool.getInstance().releaseConnection(connection);
 		}
 	}
-	
+
 	@Override
-	public void update(Friendship friendship) throws SQLException {
+	public void update(Friendship friendship) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
@@ -147,12 +149,14 @@ public class FriendshipDAO implements IFriendshipDAO {
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
-			connection.rollback();
 			logger.log(Level.ERROR, "Update error", e);
-		} finally {
-			if (connection != null) {
-				connection.setAutoCommit(true);
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				logger.log(Level.ERROR, "Connection rollback error", e);
 			}
+		} finally {
+			IAbstractDAO.setTrueAutoCommit(connection);
 			IAbstractDAO.closePreparedStatement(statement);
 			ConnectionPool.getInstance().releaseConnection(connection);
 		}

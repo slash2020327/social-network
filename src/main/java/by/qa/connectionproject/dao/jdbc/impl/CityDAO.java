@@ -24,8 +24,8 @@ public class CityDAO implements ICityDAO {
 	private final static String GET_ALL_CITIES = "SELECT * FROM Cities";
 	private final static String GET_CITY_BY_USER_ID = "SELECT Cities.id, Cities.city_name, Cities.country_id FROM Cities "
 			+ "RIGHT JOIN Users ON Users.city_id=Cities.id WHERE Users.id IN(?)";
-	private final static String GET_ALL_USERS_BY_CITY_ID = "SELECT Users.id, Users.profile_id, Users.first_name, Users.last_name, Users.phone_number, Users.city_id FROM Users " + 
-			"INNER JOIN Cities ON Cities.id=Users.city_id WHERE Cities.id IN(?)";
+	private final static String GET_ALL_USERS_BY_CITY_ID = "SELECT Users.id, Users.profile_id, Users.first_name, Users.last_name, Users.phone_number, Users.city_id FROM Users "
+			+ "INNER JOIN Cities ON Cities.id=Users.city_id WHERE Cities.id IN(?)";
 	private final static String DELETE_CITY_BY_ID = "DELETE FROM Cities WHERE id=?";
 	private final static String INSERT_CITY = "INSERT INTO Cities (city_name, country_id) VALUES (?, ?)";
 	private final static String UPDATE_CITY = "UPDATE Cities SET city_name = ?, country_id = ? WHERE (id = ?)";
@@ -110,7 +110,7 @@ public class CityDAO implements ICityDAO {
 	}
 
 	@Override
-	public void create(City city) throws SQLException {
+	public void create(City city) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
@@ -122,19 +122,21 @@ public class CityDAO implements ICityDAO {
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
-			connection.rollback();
 			logger.log(Level.ERROR, "Creation error", e);
-		} finally {
-			if (connection != null) {
-				connection.setAutoCommit(true);
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				logger.log(Level.ERROR, "Connection rollback error", e);
 			}
+		} finally {
+			IAbstractDAO.setTrueAutoCommit(connection);
 			IAbstractDAO.closePreparedStatement(statement);
 			ConnectionPool.getInstance().releaseConnection(connection);
 		}
 	}
 
 	@Override
-	public void update(City city) throws SQLException {
+	public void update(City city) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
@@ -147,12 +149,14 @@ public class CityDAO implements ICityDAO {
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
-			connection.rollback();
 			logger.log(Level.ERROR, "Update error", e);
-		} finally {
-			if (connection != null) {
-				connection.setAutoCommit(true);
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				logger.log(Level.ERROR, "Connection rollback error", e);
 			}
+		} finally {
+			IAbstractDAO.setTrueAutoCommit(connection);
 			IAbstractDAO.closePreparedStatement(statement);
 			ConnectionPool.getInstance().releaseConnection(connection);
 		}
@@ -192,7 +196,7 @@ public class CityDAO implements ICityDAO {
 		}
 		return users;
 	}
-	
+
 	@Override
 	public City getCityByUserId(Integer id) {
 		City city = new City();

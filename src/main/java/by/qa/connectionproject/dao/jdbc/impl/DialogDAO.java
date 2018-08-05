@@ -18,13 +18,13 @@ import by.qa.connectionproject.models.Dialog;
 import by.qa.connectionproject.models.PrivateMessage;
 
 public class DialogDAO implements IDialogDAO {
-	
+
 	private final static String GET_DIALOG_BY_ID = "SELECT * FROM Dialogues WHERE id=?";
 	private final static String GET_ALL_DIALOGUES = "SELECT * FROM Dialogues";
-	private final static String GET_DIALOG_BY_MESSAGE_ID = "SELECT Dialogues.id, Dialogues.user_id, Dialogues.creation_date FROM Dialogues " + 
-			"INNER JOIN Private_messages ON Private_messages.dialog_id=Dialogues.id WHERE Private_messages.id IN(?)";
-	private final static String GET_ALL_MESSAGES_BY_DIALOG_ID = "SELECT Private_messages.id, Private_messages.from_user, Private_messages.to_user, Private_messages.text, Private_messages.date_send, Private_messages.dialog_id FROM Private_messages " + 
-			"INNER JOIN Dialogues ON Dialogues.id=Private_messages.dialog_id WHERE Dialogues.id IN(?)";
+	private final static String GET_DIALOG_BY_MESSAGE_ID = "SELECT Dialogues.id, Dialogues.user_id, Dialogues.creation_date FROM Dialogues "
+			+ "INNER JOIN Private_messages ON Private_messages.dialog_id=Dialogues.id WHERE Private_messages.id IN(?)";
+	private final static String GET_ALL_MESSAGES_BY_DIALOG_ID = "SELECT Private_messages.id, Private_messages.from_user, Private_messages.to_user, Private_messages.text, Private_messages.date_send, Private_messages.dialog_id FROM Private_messages "
+			+ "INNER JOIN Dialogues ON Dialogues.id=Private_messages.dialog_id WHERE Dialogues.id IN(?)";
 	private final static String DELETE_DIALOG_BY_ID = "DELETE FROM Dialogues WHERE id=?";
 	private final static String INSERT_DIALOG = "INSERT INTO Dialogues (user_id, creation_date) VALUES (?)";
 	private final static String UPDATE_DIALOG = "UPDATE Dialogues SET user_id = ?, creation_date = ? WHERE (id = ?)";
@@ -82,7 +82,7 @@ public class DialogDAO implements IDialogDAO {
 		try {
 			dialog.setId(resultSet.getInt("id"));
 			dialog.setDialogOwnerId(resultSet.getInt("user_id"));
-			Timestamp dateTime = resultSet.getTimestamp("creation_date"); 
+			Timestamp dateTime = resultSet.getTimestamp("creation_date");
 			Date date = new Date(dateTime.getTime());
 			dialog.setCreationDate(date);
 		} catch (SQLException e) {
@@ -90,7 +90,7 @@ public class DialogDAO implements IDialogDAO {
 		}
 		return dialog;
 	}
-	
+
 	@Override
 	public void delete(Integer id) {
 		Connection connection = null;
@@ -109,7 +109,7 @@ public class DialogDAO implements IDialogDAO {
 	}
 
 	@Override
-	public void create(Dialog dialog) throws SQLException {
+	public void create(Dialog dialog) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
@@ -121,19 +121,21 @@ public class DialogDAO implements IDialogDAO {
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
-			connection.rollback();
 			logger.log(Level.ERROR, "Creation error", e);
-		} finally {
-			if (connection != null) {
-				connection.setAutoCommit(true);
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				logger.log(Level.ERROR, "Connection rollback error", e);
 			}
+		} finally {
+			IAbstractDAO.setTrueAutoCommit(connection);
 			IAbstractDAO.closePreparedStatement(statement);
 			ConnectionPool.getInstance().releaseConnection(connection);
 		}
 	}
-	
+
 	@Override
-	public void update(Dialog dialog) throws SQLException {
+	public void update(Dialog dialog) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
@@ -146,17 +148,19 @@ public class DialogDAO implements IDialogDAO {
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
-			connection.rollback();
 			logger.log(Level.ERROR, "Update error", e);
-		} finally {
-			if (connection != null) {
-				connection.setAutoCommit(true);
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				logger.log(Level.ERROR, "Connection rollback error", e);
 			}
+		} finally {
+			IAbstractDAO.setTrueAutoCommit(connection);
 			IAbstractDAO.closePreparedStatement(statement);
 			ConnectionPool.getInstance().releaseConnection(connection);
 		}
 	}
-	
+
 	@Override
 	public List<PrivateMessage> getAllMessagesByDialogId(Integer id) {
 		List<PrivateMessage> privateMessages = new ArrayList<>();
@@ -174,7 +178,7 @@ public class DialogDAO implements IDialogDAO {
 				privateMessage.setFromUserId(resultSet.getInt("from_user"));
 				privateMessage.setToUserId(resultSet.getInt("to_user"));
 				privateMessage.setMessageText(resultSet.getString("text"));
-				Timestamp dateTime = resultSet.getTimestamp("date_send"); 
+				Timestamp dateTime = resultSet.getTimestamp("date_send");
 				Date date = new Date(dateTime.getTime());
 				privateMessage.setDateSend(date);
 				privateMessage.setDialogId(resultSet.getInt("dialog_id"));
@@ -189,7 +193,7 @@ public class DialogDAO implements IDialogDAO {
 		}
 		return privateMessages;
 	}
-	
+
 	@Override
 	public Dialog getDialogByMessageId(Integer id) {
 		Dialog dialog = new Dialog();

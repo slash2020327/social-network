@@ -18,14 +18,14 @@ import by.qa.connectionproject.models.Group;
 import by.qa.connectionproject.models.Profile;
 
 public class GroupDAO implements IGroupDAO {
-	
+
 	private final static String GET_GROUP_BY_ID = "SELECT * FROM Public_groups WHERE id=?";
 	private final static String GET_ALL_GROUPS = "SELECT * FROM Public_groups";
 	private final static String DELETE_GROUP_BY_ID = "DELETE FROM Public_groups WHERE id=?";
 	private final static String INSERT_GROUP = "INSERT INTO Public_groups (name, description) VALUES (?, ?)";
 	private final static String UPDATE_GROUP = "UPDATE Public_groups SET name = ?, description = ? WHERE (id = ?)";
-	private final static String GET_ALL_PROFILES_BY_GROUP_ID = "SELECT Profiles.id, Profiles.status, Profiles.login, Profiles.password FROM Profiles " + 
-			"INNER JOIN Groups_has_profiles ON Groups_has_profiles.profile_id=Profiles.id INNER JOIN Public_groups ON Public_groups.id=Groups_has_profiles.group_id WHERE Public_groups.id IN(?)";
+	private final static String GET_ALL_PROFILES_BY_GROUP_ID = "SELECT Profiles.id, Profiles.status, Profiles.login, Profiles.password FROM Profiles "
+			+ "INNER JOIN Groups_has_profiles ON Groups_has_profiles.profile_id=Profiles.id INNER JOIN Public_groups ON Public_groups.id=Groups_has_profiles.group_id WHERE Public_groups.id IN(?)";
 	private static Logger logger = LogManager.getLogger();
 
 	@Override
@@ -76,7 +76,7 @@ public class GroupDAO implements IGroupDAO {
 		}
 		return groups;
 	}
-	
+
 	private Group setGroupFields(ResultSet resultSet, Group group) {
 		try {
 			group.setId(resultSet.getInt("id"));
@@ -87,7 +87,7 @@ public class GroupDAO implements IGroupDAO {
 		}
 		return group;
 	}
-	
+
 	@Override
 	public void delete(Integer id) {
 		Connection connection = null;
@@ -106,7 +106,7 @@ public class GroupDAO implements IGroupDAO {
 	}
 
 	@Override
-	public void create(Group group) throws SQLException {
+	public void create(Group group) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
@@ -118,19 +118,21 @@ public class GroupDAO implements IGroupDAO {
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
-			connection.rollback();
 			logger.log(Level.ERROR, "Creation error", e);
-		} finally {
-			if (connection != null) {
-				connection.setAutoCommit(true);
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				logger.log(Level.ERROR, "Connection rollback error", e);
 			}
+		} finally {
+			IAbstractDAO.setTrueAutoCommit(connection);
 			IAbstractDAO.closePreparedStatement(statement);
 			ConnectionPool.getInstance().releaseConnection(connection);
 		}
 	}
-	
+
 	@Override
-	public void update(Group group) throws SQLException {
+	public void update(Group group) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
@@ -143,17 +145,19 @@ public class GroupDAO implements IGroupDAO {
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
-			connection.rollback();
 			logger.log(Level.ERROR, "Update error", e);
-		} finally {
-			if (connection != null) {
-				connection.setAutoCommit(true);
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				logger.log(Level.ERROR, "Connection rollback error", e);
 			}
+		} finally {
+			IAbstractDAO.setTrueAutoCommit(connection);
 			IAbstractDAO.closePreparedStatement(statement);
 			ConnectionPool.getInstance().releaseConnection(connection);
 		}
 	}
-	
+
 	@Override
 	public List<Profile> getAllProfilesByGroupId(Integer id) {
 		List<Profile> profileCollection = new ArrayList<>();

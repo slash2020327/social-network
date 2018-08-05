@@ -107,7 +107,7 @@ public class VideoDAO implements IVideoDAO {
 	}
 
 	@Override
-	public void create(Video video) throws SQLException {
+	public void create(Video video) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
@@ -120,19 +120,21 @@ public class VideoDAO implements IVideoDAO {
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
-			connection.rollback();
 			logger.log(Level.ERROR, "Creation error", e);
-		} finally {
-			if (connection != null) {
-				connection.setAutoCommit(true);
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				logger.log(Level.ERROR, "Connection rollback error", e);
 			}
+		} finally {
+			IAbstractDAO.setTrueAutoCommit(connection);
 			IAbstractDAO.closePreparedStatement(statement);
 			ConnectionPool.getInstance().releaseConnection(connection);
 		}
 	}
 
 	@Override
-	public void update(Video video) throws SQLException {
+	public void update(Video video) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
@@ -146,12 +148,14 @@ public class VideoDAO implements IVideoDAO {
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
-			connection.rollback();
 			logger.log(Level.ERROR, "Update error", e);
-		} finally {
-			if (connection != null) {
-				connection.setAutoCommit(true);
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				logger.log(Level.ERROR, "Connection rollback error", e);
 			}
+		} finally {
+			IAbstractDAO.setTrueAutoCommit(connection);
 			IAbstractDAO.closePreparedStatement(statement);
 			ConnectionPool.getInstance().releaseConnection(connection);
 		}
