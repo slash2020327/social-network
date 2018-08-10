@@ -4,20 +4,15 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import by.qa.connectionproject.connection.ConnectionPool;
-import by.qa.connectionproject.dao.jdbc.IAbstractDAO;
-import by.qa.connectionproject.dao.jdbc.IAlbumDAO;
+import by.qa.connectionproject.dao.IAbstractDAO;
+import by.qa.connectionproject.dao.IAlbumDAO;
 import by.qa.connectionproject.models.Album;
-import by.qa.connectionproject.models.file.Photo;
 
 public class AlbumDAO implements IAlbumDAO {
 
@@ -28,12 +23,12 @@ public class AlbumDAO implements IAlbumDAO {
 	private final static String DELETE_ALBUM_BY_ID = "DELETE FROM Albums WHERE id=?";
 	private final static String INSERT_ALBUM = "INSERT INTO Albums (album_name, profile_id) VALUES (?, ?)";
 	private final static String UPDATE_ALBUM = "UPDATE Albums SET album_name = ?, profile_id = ? WHERE (id = ?)";
-	private final static String GET_ALL_PHOTOS_BY_ALBUM_ID = "SELECT Photos.id, Photos.publication_date, Photos.album_id FROM Photos "
-			+ "INNER JOIN Albums ON Albums.id=Photos.album_id WHERE Albums.id IN(?)";
+	private final static String GET_ALL_ALBUMS_BY_PROFILE_ID = "SELECT Albums.id, Albums.album_name, Albums.profile_id FROM Albums "
+			+ "INNER JOIN Profiles ON Profiles.id=Albums.profile_id WHERE Profiles.id IN(?)";
 	private static Logger logger = LogManager.getLogger();
 
 	@Override
-	public Album getEntityById(Integer id) {
+	public Album getEntityById(Long id) {
 		Album album = new Album();
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -41,11 +36,10 @@ public class AlbumDAO implements IAlbumDAO {
 		try {
 			connection = ConnectionPool.getInstance().takeConnection();
 			statement = connection.prepareStatement(GET_ALBUM_BY_ID);
-			statement.setInt(1, id);
+			statement.setLong(1, id);
 			resultSet = statement.executeQuery();
 			resultSet.next();
 			setAlbumFields(resultSet, album);
-			album.setPhotos(getAllPhotosByAlbumId(id));
 		} catch (SQLException e) {
 			logger.log(Level.ERROR, "Request from the data base error", e);
 		} finally {
@@ -83,9 +77,9 @@ public class AlbumDAO implements IAlbumDAO {
 
 	private Album setAlbumFields(ResultSet resultSet, Album album) {
 		try {
-			album.setId(resultSet.getInt("id"));
+			album.setId(resultSet.getLong("id"));
 			album.setAlbumName(resultSet.getString("album_name"));
-			album.setProfileId(resultSet.getInt("profile_id"));
+			album.setProfileId(resultSet.getLong("profile_id"));
 		} catch (SQLException e) {
 			logger.log(Level.ERROR, "Request from the data base error", e);
 		}
@@ -93,13 +87,13 @@ public class AlbumDAO implements IAlbumDAO {
 	}
 
 	@Override
-	public void delete(Integer id) {
+	public void delete(Long id) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
 			connection = ConnectionPool.getInstance().takeConnection();
 			statement = connection.prepareStatement(DELETE_ALBUM_BY_ID);
-			statement.setInt(1, id);
+			statement.setLong(1, id);
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			logger.log(Level.ERROR, "Delete from the data base error", e);
@@ -118,7 +112,7 @@ public class AlbumDAO implements IAlbumDAO {
 			connection.setAutoCommit(false);
 			statement = connection.prepareStatement(INSERT_ALBUM);
 			statement.setString(1, album.getAlbumName());
-			statement.setInt(2, album.getProfileId());
+			statement.setLong(2, album.getProfileId());
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
@@ -136,36 +130,6 @@ public class AlbumDAO implements IAlbumDAO {
 	}
 
 	@Override
-	public List<Photo> getAllPhotosByAlbumId(Integer id) {
-		List<Photo> photoCollection = new ArrayList<>();
-		Connection connection = null;
-		PreparedStatement statement = null;
-		ResultSet resultSet = null;
-		try {
-			connection = ConnectionPool.getInstance().takeConnection();
-			statement = connection.prepareStatement(GET_ALL_PHOTOS_BY_ALBUM_ID);
-			statement.setInt(1, id);
-			resultSet = statement.executeQuery();
-			while (resultSet.next()) {
-				Photo photo = new Photo();
-				photo.setId(resultSet.getInt("id"));
-				Timestamp dateTime = resultSet.getTimestamp("publication_date");
-				Date date = new Date(dateTime.getTime());
-				photo.setPublicationDate(date);
-				photo.setAlbumId(resultSet.getInt("album_id"));
-				photoCollection.add(photo);
-			}
-		} catch (SQLException e) {
-			logger.log(Level.ERROR, "Request from the data base error", e);
-		} finally {
-			IAbstractDAO.closeResultSet(resultSet);
-			IAbstractDAO.closePreparedStatement(statement);
-			ConnectionPool.getInstance().releaseConnection(connection);
-		}
-		return photoCollection;
-	}
-
-	@Override
 	public void update(Album album) {
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -174,8 +138,8 @@ public class AlbumDAO implements IAlbumDAO {
 			connection.setAutoCommit(false);
 			statement = connection.prepareStatement(UPDATE_ALBUM);
 			statement.setString(1, album.getAlbumName());
-			statement.setInt(2, album.getProfileId());
-			statement.setInt(3, album.getId());
+			statement.setLong(2, album.getProfileId());
+			statement.setLong(3, album.getId());
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
@@ -193,7 +157,7 @@ public class AlbumDAO implements IAlbumDAO {
 	}
 
 	@Override
-	public Album getAlbumByPhotoId(Integer id) {
+	public Album getAlbumByPhotoId(Long id) {
 		Album album = new Album();
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -201,7 +165,7 @@ public class AlbumDAO implements IAlbumDAO {
 		try {
 			connection = ConnectionPool.getInstance().takeConnection();
 			statement = connection.prepareStatement(GET_ALBUM_BY_PHOTO_ID);
-			statement.setInt(1, id);
+			statement.setLong(1, id);
 			resultSet = statement.executeQuery();
 			resultSet.next();
 			setAlbumFields(resultSet, album);
@@ -213,5 +177,33 @@ public class AlbumDAO implements IAlbumDAO {
 			ConnectionPool.getInstance().releaseConnection(connection);
 		}
 		return album;
+	}
+	
+	@Override
+	public List<Album> getAllAlbumsByProfileId(Long id) {
+		List<Album> albums = new ArrayList<>();
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet resultSet = null;
+		try {
+			connection = ConnectionPool.getInstance().takeConnection();
+			statement = connection.prepareStatement(GET_ALL_ALBUMS_BY_PROFILE_ID);
+			statement.setLong(1, id);
+			resultSet = statement.executeQuery();
+			while (resultSet.next()) {
+				Album album = new Album();
+				album.setId(resultSet.getLong("id"));
+				album.setAlbumName(resultSet.getString("album_name"));
+				album.setProfileId(resultSet.getLong("profile_id"));
+				albums.add(album);
+			}
+		} catch (SQLException e) {
+			logger.log(Level.ERROR, "Request from the data base error", e);
+		} finally {
+			IAbstractDAO.closeResultSet(resultSet);
+			IAbstractDAO.closePreparedStatement(statement);
+			ConnectionPool.getInstance().releaseConnection(connection);
+		}
+		return albums;
 	}
 }

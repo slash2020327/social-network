@@ -4,20 +4,15 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import by.qa.connectionproject.connection.ConnectionPool;
-import by.qa.connectionproject.dao.jdbc.IAbstractDAO;
-import by.qa.connectionproject.dao.jdbc.IUserDAO;
+import by.qa.connectionproject.dao.IAbstractDAO;
+import by.qa.connectionproject.dao.IUserDAO;
 import by.qa.connectionproject.models.City;
-import by.qa.connectionproject.models.Dialog;
-import by.qa.connectionproject.models.Friendship;
-import by.qa.connectionproject.models.FriendshipStatus;
 import by.qa.connectionproject.models.Profile;
 import by.qa.connectionproject.models.User;
 
@@ -26,8 +21,6 @@ public class UserDAO implements IUserDAO {
 	private final static String GET_USER_BY_ID = "SELECT * FROM Users WHERE id=?";
 	private final static String GET_ALL_USERS = "SELECT * FROM Users";
 	private final static String DELETE_USER_BY_ID = "DELETE FROM Users WHERE id=?";
-	private final static String GET_ALL_DIALOGUES_BY_USER_ID = "SELECT Dialogues.id, Dialogues.user_id, Dialogues.creation_date FROM Dialogues "
-			+ "INNER JOIN Users ON Users.id=Dialogues.user_id WHERE Users.id IN(?)";
 	private final static String GET_USER_BY_DIALOG_ID = "SELECT Users.id, Users.profile_id, Users.first_name, Users.last_name, Users.phone_number, Users.city_id FROM Users "
 			+ "INNER JOIN Dialogues ON Dialogues.user_id=Users.id WHERE Dialogues.id IN(?)";
 	private final static String GET_FROM_USER_BY_MESSAGE_ID = "SELECT Users.id, Users.profile_id, Users.first_name, Users.last_name, Users.phone_number, Users.city_id FROM Users "
@@ -38,8 +31,6 @@ public class UserDAO implements IUserDAO {
 			+ "INNER JOIN Friendship ON Friendship.user1_id=Users.id WHERE Friendship.id IN(?)";
 	private final static String GET_USER_TWO_BY_FRIENDSHIP_ID = "SELECT Users.id, Users.profile_id, Users.first_name, Users.last_name, Users.phone_number, Users.city_id FROM Users "
 			+ "INNER JOIN Friendship ON Friendship.user2_id=Users.id WHERE Friendship.id IN(?)";
-	private final static String GET_ALL_FRIENDSHIP_BY_USER_ID = "SELECT Friendship.id, Friendship.user1_id, Friendship.user2_id, Friendship.status FROM Friendship "
-			+ "INNER JOIN Users ON Users.id=Friendship.user1_id WHERE Users.id IN(?)";
 	private final static String INSERT_USER = "INSERT INTO Users (profile_id, first_name, last_name, phone_number, city_id) VALUES (?, ?, ?, ?, ?)";
 	private final static String UPDATE_USER = "UPDATE Users SET profile_id = ?, first_name = ?, last_name = ?, phone_number = ?, city_id = ? WHERE (id = ?)";
 	private static Logger logger = LogManager.getLogger();
@@ -49,7 +40,7 @@ public class UserDAO implements IUserDAO {
 	}
 
 	@Override
-	public User getEntityById(Integer id) {
+	public User getEntityById(Long id) {
 		User user = new User();
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -57,7 +48,7 @@ public class UserDAO implements IUserDAO {
 		try {
 			connection = ConnectionPool.getInstance().takeConnection();
 			statement = connection.prepareStatement(GET_USER_BY_ID);
-			statement.setInt(1, id);
+			statement.setLong(1, id);
 			resultSet = statement.executeQuery();
 			resultSet.next();
 			setUserFields(resultSet, user);
@@ -100,13 +91,13 @@ public class UserDAO implements IUserDAO {
 		try {
 			Profile profile = new Profile();
 			City city = new City();
-			user.setId(resultSet.getInt("id"));
-			profile.setId(resultSet.getInt("profile_id"));
+			user.setId(resultSet.getLong("id"));
+			profile.setId(resultSet.getLong("profile_id"));
 			user.setProfile(profile);
 			user.setFirstName(resultSet.getString("first_name"));
 			user.setLastName(resultSet.getString("last_name"));
 			user.setPhoneNumber(resultSet.getString("phone_number"));
-			city.setId(resultSet.getInt("city_id"));
+			city.setId(resultSet.getLong("city_id"));
 			user.setCity(city);
 		} catch (SQLException e) {
 			logger.log(Level.ERROR, "Request from the data base error", e);
@@ -115,13 +106,13 @@ public class UserDAO implements IUserDAO {
 	}
 
 	@Override
-	public void delete(Integer id) {
+	public void delete(Long id) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
 			connection = ConnectionPool.getInstance().takeConnection();
 			statement = connection.prepareStatement(DELETE_USER_BY_ID);
-			statement.setInt(1, id);
+			statement.setLong(1, id);
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			logger.log(Level.ERROR, "Delete from the data base error", e);
@@ -159,12 +150,12 @@ public class UserDAO implements IUserDAO {
 			connection = ConnectionPool.getInstance().takeConnection();
 			connection.setAutoCommit(false);
 			statement = connection.prepareStatement(UPDATE_USER);
-			statement.setInt(1, user.getProfile().getId());
+			statement.setLong(1, user.getProfile().getId());
 			statement.setString(2, user.getFirstName());
 			statement.setString(3, user.getLastName());
 			statement.setString(4, user.getPhoneNumber());
-			statement.setInt(5, user.getCity().getId());
-			statement.setInt(6, user.getId());
+			statement.setLong(5, user.getCity().getId());
+			statement.setLong(6, user.getId());
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
@@ -182,66 +173,7 @@ public class UserDAO implements IUserDAO {
 	}
 
 	@Override
-	public List<Dialog> getAllDialoguesByUserId(Integer id) {
-		List<Dialog> dialogues = new ArrayList<>();
-		Connection connection = null;
-		PreparedStatement statement = null;
-		ResultSet resultSet = null;
-		try {
-			connection = ConnectionPool.getInstance().takeConnection();
-			statement = connection.prepareStatement(GET_ALL_DIALOGUES_BY_USER_ID);
-			statement.setInt(1, id);
-			resultSet = statement.executeQuery();
-			while (resultSet.next()) {
-				Dialog dialog = new Dialog();
-				dialog.setId(resultSet.getInt("id"));
-				dialog.setDialogOwnerId(resultSet.getInt("user_id"));
-				Timestamp dateTime = resultSet.getTimestamp("creation_date");
-				Date date = new Date(dateTime.getTime());
-				dialog.setCreationDate(date);
-				dialogues.add(dialog);
-			}
-		} catch (SQLException e) {
-			logger.log(Level.ERROR, "Request from the data base error", e);
-		} finally {
-			IAbstractDAO.closeResultSet(resultSet);
-			IAbstractDAO.closePreparedStatement(statement);
-			ConnectionPool.getInstance().releaseConnection(connection);
-		}
-		return dialogues;
-	}
-
-	@Override
-	public List<Friendship> getAllFriendshipByUserId(Integer id) {
-		List<Friendship> friendshipList = new ArrayList<>();
-		Connection connection = null;
-		PreparedStatement statement = null;
-		ResultSet resultSet = null;
-		try {
-			connection = ConnectionPool.getInstance().takeConnection();
-			statement = connection.prepareStatement(GET_ALL_FRIENDSHIP_BY_USER_ID);
-			statement.setInt(1, id);
-			resultSet = statement.executeQuery();
-			while (resultSet.next()) {
-				Friendship friendship = new Friendship();
-				friendship.setId(resultSet.getInt("id"));
-				friendship.setUserOneId(resultSet.getInt("user1_id"));
-				friendship.setUserTwoId(resultSet.getInt("user2_id"));
-				friendship.setStatus(FriendshipStatus.valueOf(resultSet.getString("status")));
-				friendshipList.add(friendship);
-			}
-		} catch (SQLException e) {
-			logger.log(Level.ERROR, "Request from the data base error", e);
-		} finally {
-			IAbstractDAO.closeResultSet(resultSet);
-			IAbstractDAO.closePreparedStatement(statement);
-			ConnectionPool.getInstance().releaseConnection(connection);
-		}
-		return friendshipList;
-	}
-
-	@Override
-	public User getUserByDialogId(Integer id) {
+	public User getUserByDialogId(Long id) {
 		User user = new User();
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -249,7 +181,7 @@ public class UserDAO implements IUserDAO {
 		try {
 			connection = ConnectionPool.getInstance().takeConnection();
 			statement = connection.prepareStatement(GET_USER_BY_DIALOG_ID);
-			statement.setInt(1, id);
+			statement.setLong(1, id);
 			resultSet = statement.executeQuery();
 			resultSet.next();
 			setUserFields(resultSet, user);
@@ -264,7 +196,7 @@ public class UserDAO implements IUserDAO {
 	}
 
 	@Override
-	public User getFromUserByPrivateMessage(Integer id) {
+	public User getFromUserByPrivateMessageId(Long id) {
 		User user = new User();
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -272,7 +204,7 @@ public class UserDAO implements IUserDAO {
 		try {
 			connection = ConnectionPool.getInstance().takeConnection();
 			statement = connection.prepareStatement(GET_FROM_USER_BY_MESSAGE_ID);
-			statement.setInt(1, id);
+			statement.setLong(1, id);
 			resultSet = statement.executeQuery();
 			resultSet.next();
 			setUserFields(resultSet, user);
@@ -287,7 +219,7 @@ public class UserDAO implements IUserDAO {
 	}
 
 	@Override
-	public User getToUserByPrivateMessage(Integer id) {
+	public User getToUserByPrivateMessageId(Long id) {
 		User user = new User();
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -295,7 +227,7 @@ public class UserDAO implements IUserDAO {
 		try {
 			connection = ConnectionPool.getInstance().takeConnection();
 			statement = connection.prepareStatement(GET_TO_USER_BY_MESSAGE_ID);
-			statement.setInt(1, id);
+			statement.setLong(1, id);
 			resultSet = statement.executeQuery();
 			resultSet.next();
 			setUserFields(resultSet, user);
@@ -310,7 +242,7 @@ public class UserDAO implements IUserDAO {
 	}
 
 	@Override
-	public User getUserOneByFriendshipId(Integer id) {
+	public User getUserOneByFriendshipId(Long id) {
 		User user = new User();
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -318,7 +250,7 @@ public class UserDAO implements IUserDAO {
 		try {
 			connection = ConnectionPool.getInstance().takeConnection();
 			statement = connection.prepareStatement(GET_USER_ONE_BY_FRIENDSHIP_ID);
-			statement.setInt(1, id);
+			statement.setLong(1, id);
 			resultSet = statement.executeQuery();
 			resultSet.next();
 			setUserFields(resultSet, user);
@@ -333,7 +265,7 @@ public class UserDAO implements IUserDAO {
 	}
 
 	@Override
-	public User getUserTwoByFriendshipId(Integer id) {
+	public User getUserTwoByFriendshipId(Long id) {
 		User user = new User();
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -341,7 +273,7 @@ public class UserDAO implements IUserDAO {
 		try {
 			connection = ConnectionPool.getInstance().takeConnection();
 			statement = connection.prepareStatement(GET_USER_TWO_BY_FRIENDSHIP_ID);
-			statement.setInt(1, id);
+			statement.setLong(1, id);
 			resultSet = statement.executeQuery();
 			resultSet.next();
 			setUserFields(resultSet, user);

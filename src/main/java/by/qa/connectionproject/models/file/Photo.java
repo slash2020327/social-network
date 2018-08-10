@@ -2,13 +2,13 @@ package by.qa.connectionproject.models.file;
 
 public class Photo extends File {
 
-	private Integer albumId;
+	private Long albumId;
 
-	public Integer getAlbumId() {
+	public Long getAlbumId() {
 		return albumId;
 	}
 
-	public void setAlbumId(Integer albumId) {
+	public void setAlbumId(Long albumId) {
 		this.albumId = albumId;
 	}
 

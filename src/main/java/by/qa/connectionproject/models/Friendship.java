@@ -5,23 +5,23 @@ import javax.xml.bind.annotation.XmlAccessorType;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Friendship extends AbstractEntity{
 
-	private Integer userOneId;
-	private Integer userTwoId;
+	private Long userOneId;
+	private Long userTwoId;
 	private FriendshipStatus status;
 
-	public Integer getUserOneId() {
+	public Long getUserOneId() {
 		return userOneId;
 	}
 
-	public void setUserOneId(Integer userOneId) {
+	public void setUserOneId(Long userOneId) {
 		this.userOneId = userOneId;
 	}
 
-	public Integer getUserTwoId() {
+	public Long getUserTwoId() {
 		return userTwoId;
 	}
 
-	public void setUserTwoId(Integer userTwoId) {
+	public void setUserTwoId(Long userTwoId) {
 		this.userTwoId = userTwoId;
 	}
 

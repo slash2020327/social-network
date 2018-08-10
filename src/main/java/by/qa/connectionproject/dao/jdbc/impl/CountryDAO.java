@@ -12,8 +12,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import by.qa.connectionproject.connection.ConnectionPool;
-import by.qa.connectionproject.dao.jdbc.IAbstractDAO;
-import by.qa.connectionproject.dao.jdbc.ICountryDAO;
+import by.qa.connectionproject.dao.IAbstractDAO;
+import by.qa.connectionproject.dao.ICountryDAO;
 import by.qa.connectionproject.models.City;
 import by.qa.connectionproject.models.Country;
 
@@ -31,7 +31,7 @@ public class CountryDAO implements ICountryDAO {
 	private static Logger logger = LogManager.getLogger();
 
 	@Override
-	public Country getEntityById(Integer id) {
+	public Country getEntityById(Long id) {
 		Country country = new Country();
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -39,7 +39,7 @@ public class CountryDAO implements ICountryDAO {
 		try {
 			connection = ConnectionPool.getInstance().takeConnection();
 			statement = connection.prepareStatement(GET_COUNTRY_BY_ID);
-			statement.setInt(1, id);
+			statement.setLong(1, id);
 			resultSet = statement.executeQuery();
 			resultSet.next();
 			setCountryFields(resultSet, country);
@@ -80,7 +80,7 @@ public class CountryDAO implements ICountryDAO {
 
 	private Country setCountryFields(ResultSet resultSet, Country country) {
 		try {
-			country.setId(resultSet.getInt("id"));
+			country.setId(resultSet.getLong("id"));
 			country.setCountryName(resultSet.getString("country_name"));
 		} catch (SQLException e) {
 			logger.log(Level.ERROR, "Request from the data base error", e);
@@ -89,13 +89,13 @@ public class CountryDAO implements ICountryDAO {
 	}
 
 	@Override
-	public void delete(Integer id) {
+	public void delete(Long id) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
 			connection = ConnectionPool.getInstance().takeConnection();
 			statement = connection.prepareStatement(DELETE_COUNTRY_BY_ID);
-			statement.setInt(1, id);
+			statement.setLong(1, id);
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			logger.log(Level.ERROR, "Delete from the data base error", e);
@@ -139,7 +139,7 @@ public class CountryDAO implements ICountryDAO {
 			connection.setAutoCommit(false);
 			statement = connection.prepareStatement(UPDATE_COUNTRY);
 			statement.setString(1, country.getCountryName());
-			statement.setInt(2, country.getId());
+			statement.setLong(2, country.getId());
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
@@ -157,7 +157,7 @@ public class CountryDAO implements ICountryDAO {
 	}
 
 	@Override
-	public List<City> getAllCitiesByCountryId(Integer id) {
+	public List<City> getAllCitiesByCountryId(Long id) {
 		List<City> cities = new ArrayList<>();
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -165,14 +165,14 @@ public class CountryDAO implements ICountryDAO {
 		try {
 			connection = ConnectionPool.getInstance().takeConnection();
 			statement = connection.prepareStatement(GET_ALL_CITIES_BY_COUNTRY_ID);
-			statement.setInt(1, id);
+			statement.setLong(1, id);
 			resultSet = statement.executeQuery();
 			while (resultSet.next()) {
 				Country country = new Country();
 				City city = new City();
-				city.setId(resultSet.getInt("id"));
+				city.setId(resultSet.getLong("id"));
 				city.setCityName(resultSet.getString("city_name"));
-				country.setId(resultSet.getInt("country_id"));
+				country.setId(resultSet.getLong("country_id"));
 				city.setCountry(country);
 				cities.add(city);
 			}
@@ -187,7 +187,7 @@ public class CountryDAO implements ICountryDAO {
 	}
 
 	@Override
-	public Country getCountryByCityId(Integer id) {
+	public Country getCountryByCityId(Long id) {
 		Country country = new Country();
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -195,7 +195,7 @@ public class CountryDAO implements ICountryDAO {
 		try {
 			connection = ConnectionPool.getInstance().takeConnection();
 			statement = connection.prepareStatement(GET_COUNTRY_BY_CITY_ID);
-			statement.setInt(1, id);
+			statement.setLong(1, id);
 			resultSet = statement.executeQuery();
 			resultSet.next();
 			setCountryFields(resultSet, country);

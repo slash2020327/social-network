@@ -13,7 +13,7 @@ import by.qa.connectionproject.models.file.Photo;
 public class Album extends AbstractEntity{
 
 	private String albumName;
-	private Integer profileId;
+	private Long profileId;
 	@XmlElementWrapper(name="photos")
 	@XmlElement(name="photo")
 	private List<Photo> photos;
@@ -26,11 +26,11 @@ public class Album extends AbstractEntity{
 		this.albumName = albumName;
 	}
 
-	public Integer getProfileId() {
+	public Long getProfileId() {
 		return profileId;
 	}
 
-	public void setProfileId(Integer profileId) {
+	public void setProfileId(Long profileId) {
 		this.profileId = profileId;
 	}
 

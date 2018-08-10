@@ -4,7 +4,7 @@ public class Music extends File {
 
 	private String artistName;
 	private String songName;
-	private Integer profileId;
+	private Long profileId;
 
 	public String getArtistName() {
 		return artistName;
@@ -22,11 +22,11 @@ public class Music extends File {
 		this.songName = songName;
 	}
 
-	public Integer getProfileId() {
+	public Long getProfileId() {
 		return profileId;
 	}
 
-	public void setProfileId(Integer profileId) {
+	public void setProfileId(Long profileId) {
 		this.profileId = profileId;
 	}
 

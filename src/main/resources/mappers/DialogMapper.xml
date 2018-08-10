@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="by.qa.connectionproject.dao.IDialogDAO">
+	<resultMap id="dialog"
+		type="by.qa.connectionproject.models.Dialog">
+		<id property="id" column="id" />
+		<result property="dialogOwnerId" column="user_id" />
+		<result property="creationDate" column="creation_date" />
+	</resultMap>
+	<select id="getEntityById" parameterType="java.lang.Long"
+		resultMap="dialog"> 
+		SELECT * FROM Dialogues WHERE id = #{id}
+	</select>
+	<select id="getAll" resultMap="dialog">
+		SELECT * FROM Dialogues
+	</select>
+	<insert id="create" parameterType="by.qa.connectionproject.models.Dialog"  keyProperty="id" useGeneratedKeys="true">
+		INSERT INTO Dialogues (user_id,creation_date) VALUES (#{dialogOwnerId},#{creationDate}) 	    
+	</insert>
+	 <update id="update" parameterType="by.qa.connectionproject.models.Dialog">
+        UPDATE Dialogues SET user_id = #{dialogOwnerId}, creation_date = #{creationDate} WHERE id = #{id} 
+    </update>
+	<delete id="delete" parameterType="java.lang.Long">
+        DELETE FROM Dialogues WHERE id = #{id}
+    </delete>
+    <select id="getAllDialoguesByUserId" parameterType="java.lang.Long"
+		resultMap="dialog"> 
+		SELECT Dialogues.id, Dialogues.user_id, Dialogues.creation_date FROM Dialogues RIGHT JOIN Users ON Users.id=Dialogues.user_id WHERE Users.id = #{id}
+	</select>
+	<select id="getDialogByMessageId" parameterType="java.lang.Long"
+		resultMap="dialog"> 
+		SELECT Dialogues.id, Dialogues.user_id, Dialogues.creation_date FROM Dialogues INNER JOIN Private_messages ON Private_messages.dialog_id=Dialogues.id WHERE Private_messages.id = #{id}
+	</select>
+</mapper>

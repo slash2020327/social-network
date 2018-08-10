@@ -15,8 +15,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import by.qa.connectionproject.connection.ConnectionPool;
-import by.qa.connectionproject.dao.jdbc.IAbstractDAO;
-import by.qa.connectionproject.dao.jdbc.IMusicDAO;
+import by.qa.connectionproject.dao.IAbstractDAO;
+import by.qa.connectionproject.dao.IMusicDAO;
 import by.qa.connectionproject.models.file.Music;
 
 public class MusicDAO implements IMusicDAO {
@@ -26,10 +26,12 @@ public class MusicDAO implements IMusicDAO {
 	private final static String DELETE_MUSIC_BY_ID = "DELETE FROM Music WHERE id=?";
 	private final static String INSERT_MUSIC = "INSERT INTO Music (artist_name, song_name, publication_date, profile_id) VALUES (?, ?, ?, ?)";
 	private final static String UPDATE_MUSIC = "UPDATE Music SET artist_name = ?, song_name = ?, publication_date = ?, profile_id = ? WHERE (id = ?)";
+	private final static String GET_ALL_MUSIC_BY_PROFILE_ID = "SELECT Music.id, Music.artist_name, Music.song_name, Music.publication_date, Music.profile_id FROM Music "
+			+ "INNER JOIN Profiles ON Profiles.id=Music.profile_id WHERE Profiles.id IN(?)";
 	private static Logger logger = LogManager.getLogger();
 
 	@Override
-	public Music getEntityById(Integer id) {
+	public Music getEntityById(Long id) {
 		Music music = new Music();
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -37,7 +39,7 @@ public class MusicDAO implements IMusicDAO {
 		try {
 			connection = ConnectionPool.getInstance().takeConnection();
 			statement = connection.prepareStatement(GET_MUSIC_BY_ID);
-			statement.setInt(1, id);
+			statement.setLong(1, id);
 			resultSet = statement.executeQuery();
 			resultSet.next();
 			setMusicFields(resultSet, music);
@@ -78,13 +80,13 @@ public class MusicDAO implements IMusicDAO {
 
 	private Music setMusicFields(ResultSet resultSet, Music music) {
 		try {
-			music.setId(resultSet.getInt("id"));
+			music.setId(resultSet.getLong("id"));
 			music.setArtistName(resultSet.getString("artist_name"));
 			music.setSongName(resultSet.getString("song_name"));
 			Timestamp dateTime = resultSet.getTimestamp("publication_date");
 			Date date = new Date(dateTime.getTime());
 			music.setPublicationDate(date);
-			music.setProfileId(resultSet.getInt("profile_id"));
+			music.setProfileId(resultSet.getLong("profile_id"));
 		} catch (SQLException e) {
 			logger.log(Level.ERROR, "Request from the data base error", e);
 		}
@@ -92,13 +94,13 @@ public class MusicDAO implements IMusicDAO {
 	}
 
 	@Override
-	public void delete(Integer id) {
+	public void delete(Long id) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
 			connection = ConnectionPool.getInstance().takeConnection();
 			statement = connection.prepareStatement(DELETE_MUSIC_BY_ID);
-			statement.setInt(1, id);
+			statement.setLong(1, id);
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			logger.log(Level.ERROR, "Delete from the data base error", e);
@@ -120,7 +122,7 @@ public class MusicDAO implements IMusicDAO {
 			statement.setString(2, music.getSongName());
 			LocalDateTime localDate = LocalDateTime.now();
 			statement.setObject(3, localDate);
-			statement.setInt(4, music.getProfileId());
+			statement.setLong(4, music.getProfileId());
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
@@ -148,8 +150,8 @@ public class MusicDAO implements IMusicDAO {
 			statement.setString(1, music.getArtistName());
 			statement.setString(2, music.getSongName());
 			statement.setObject(3, music.getPublicationDate());
-			statement.setInt(4, music.getProfileId());
-			statement.setInt(5, music.getId());
+			statement.setLong(4, music.getProfileId());
+			statement.setLong(5, music.getId());
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
@@ -166,4 +168,35 @@ public class MusicDAO implements IMusicDAO {
 		}
 	}
 
+	@Override
+	public List<Music> getAllMusicByProfileId(Long id) {
+		List<Music> musicCollection = new ArrayList<>();
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet resultSet = null;
+		try {
+			connection = ConnectionPool.getInstance().takeConnection();
+			statement = connection.prepareStatement(GET_ALL_MUSIC_BY_PROFILE_ID);
+			statement.setLong(1, id);
+			resultSet = statement.executeQuery();
+			while (resultSet.next()) {
+				Music music = new Music();
+				music.setId(resultSet.getLong("id"));
+				music.setArtistName(resultSet.getString("artist_name"));
+				music.setSongName(resultSet.getString("song_name"));
+				Timestamp dateTime = resultSet.getTimestamp("publication_date");
+				Date date = new Date(dateTime.getTime());
+				music.setPublicationDate(date);
+				music.setProfileId(resultSet.getLong("profile_id"));
+				musicCollection.add(music);
+			}
+		} catch (SQLException e) {
+			logger.log(Level.ERROR, "Request from the data base error", e);
+		} finally {
+			IAbstractDAO.closeResultSet(resultSet);
+			IAbstractDAO.closePreparedStatement(statement);
+			ConnectionPool.getInstance().releaseConnection(connection);
+		}
+		return musicCollection;
+	}
 }

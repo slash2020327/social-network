@@ -11,8 +11,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import by.qa.connectionproject.connection.ConnectionPool;
-import by.qa.connectionproject.dao.jdbc.IAbstractDAO;
-import by.qa.connectionproject.dao.jdbc.ICityDAO;
+import by.qa.connectionproject.dao.IAbstractDAO;
+import by.qa.connectionproject.dao.ICityDAO;
 import by.qa.connectionproject.models.City;
 import by.qa.connectionproject.models.Country;
 import by.qa.connectionproject.models.Profile;
@@ -57,7 +57,7 @@ public class CityDAO implements ICityDAO {
 	}
 
 	@Override
-	public City getEntityById(Integer id) {
+	public City getEntityById(Long id) {
 		City city = new City();
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -65,7 +65,7 @@ public class CityDAO implements ICityDAO {
 		try {
 			connection = ConnectionPool.getInstance().takeConnection();
 			statement = connection.prepareStatement(GET_CITY_BY_ID);
-			statement.setInt(1, id);
+			statement.setLong(1, id);
 			resultSet = statement.executeQuery();
 			resultSet.next();
 			setCityFields(resultSet, city);
@@ -82,9 +82,9 @@ public class CityDAO implements ICityDAO {
 	private City setCityFields(ResultSet resultSet, City city) {
 		try {
 			Country country = new Country();
-			city.setId(resultSet.getInt("id"));
+			city.setId(resultSet.getLong("id"));
 			city.setCityName(resultSet.getString("city_name"));
-			country.setId(resultSet.getInt("country_id"));
+			country.setId(resultSet.getLong("country_id"));
 			city.setCountry(country);
 		} catch (SQLException e) {
 			logger.log(Level.ERROR, "Request from the data base error", e);
@@ -93,13 +93,13 @@ public class CityDAO implements ICityDAO {
 	}
 
 	@Override
-	public void delete(Integer id) {
+	public void delete(Long id) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
 			connection = ConnectionPool.getInstance().takeConnection();
 			statement = connection.prepareStatement(DELETE_CITY_BY_ID);
-			statement.setInt(1, id);
+			statement.setLong(1, id);
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			logger.log(Level.ERROR, "Delete from the data base error", e);
@@ -118,7 +118,7 @@ public class CityDAO implements ICityDAO {
 			connection.setAutoCommit(false);
 			statement = connection.prepareStatement(INSERT_CITY);
 			statement.setString(1, city.getCityName());
-			statement.setInt(2, city.getCountry().getId());
+			statement.setLong(2, city.getCountry().getId());
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
@@ -144,8 +144,8 @@ public class CityDAO implements ICityDAO {
 			connection.setAutoCommit(false);
 			statement = connection.prepareStatement(UPDATE_CITY);
 			statement.setString(1, city.getCityName());
-			statement.setInt(2, city.getCountry().getId());
-			statement.setInt(3, city.getId());
+			statement.setLong(2, city.getCountry().getId());
+			statement.setLong(3, city.getId());
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
@@ -163,7 +163,7 @@ public class CityDAO implements ICityDAO {
 	}
 
 	@Override
-	public List<User> getAllUsersByCityId(Integer id) {
+	public List<User> getAllUsersByCityId(Long id) {
 		List<User> users = new ArrayList<>();
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -171,19 +171,19 @@ public class CityDAO implements ICityDAO {
 		try {
 			connection = ConnectionPool.getInstance().takeConnection();
 			statement = connection.prepareStatement(GET_ALL_USERS_BY_CITY_ID);
-			statement.setInt(1, id);
+			statement.setLong(1, id);
 			resultSet = statement.executeQuery();
 			while (resultSet.next()) {
 				User user = new User();
 				Profile profile = new Profile();
 				City city = new City();
-				user.setId(resultSet.getInt("id"));
-				profile.setId(resultSet.getInt("profile_id"));
+				user.setId(resultSet.getLong("id"));
+				profile.setId(resultSet.getLong("profile_id"));
 				user.setProfile(profile);
 				user.setFirstName(resultSet.getString("first_name"));
 				user.setLastName(resultSet.getString("last_name"));
 				user.setPhoneNumber(resultSet.getString("phone_number"));
-				city.setId(resultSet.getInt("city_id"));
+				city.setId(resultSet.getLong("city_id"));
 				user.setCity(city);
 				users.add(user);
 			}
@@ -198,7 +198,7 @@ public class CityDAO implements ICityDAO {
 	}
 
 	@Override
-	public City getCityByUserId(Integer id) {
+	public City getCityByUserId(Long id) {
 		City city = new City();
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -206,7 +206,7 @@ public class CityDAO implements ICityDAO {
 		try {
 			connection = ConnectionPool.getInstance().takeConnection();
 			statement = connection.prepareStatement(GET_CITY_BY_USER_ID);
-			statement.setInt(1, id);
+			statement.setLong(1, id);
 			resultSet = statement.executeQuery();
 			resultSet.next();
 			setCityFields(resultSet, city);

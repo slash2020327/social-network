@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="by.qa.connectionproject.dao.IGroupDAO">
+	<resultMap id="group"
+		type="by.qa.connectionproject.models.Group">
+		<id property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="groupDescription" column="description" />
+	</resultMap>
+	<select id="getEntityById" parameterType="java.lang.Long"
+		resultMap="group"> 
+		SELECT * FROM Public_groups WHERE id = #{id}
+	</select>
+	<select id="getAll" resultMap="group">
+		SELECT * FROM Public_groups
+	</select>
+	<insert id="create" parameterType="by.qa.connectionproject.models.Group"  keyProperty="id" useGeneratedKeys="true">
+		INSERT INTO Public_groups (name,description) VALUES (#{name},#{groupDescription}) 	    
+	</insert>
+	 <update id="update" parameterType="by.qa.connectionproject.models.Group">
+        UPDATE Public_groups SET name = #{name}, description = #{groupDescription} WHERE id = #{id} 
+    </update>
+	<delete id="delete" parameterType="java.lang.Long">
+        DELETE FROM Public_groups WHERE id = #{id}
+    </delete>
+     <select id="getAllGroupsByProfileId" parameterType="java.lang.Long"
+		resultMap="group"> 
+		SELECT Public_groups.id, Public_groups.name, Public_groups.description FROM Public_groups INNER JOIN Groups_has_profiles ON Groups_has_profiles.group_id=Public_groups.id INNER JOIN Profiles ON Profiles.id=Groups_has_profiles.profile_id WHERE Profiles.id = #{id}
+	</select>
+</mapper>

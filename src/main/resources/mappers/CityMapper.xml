@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="by.qa.connectionproject.dao.ICityDAO">
+	<resultMap id="city"
+		type="by.qa.connectionproject.models.City">
+		<id property="id" column="id" />
+		<result property="cityName" column="city_name" />
+		<association property="country" resultMap="country" />
+	</resultMap>
+	<resultMap id="country"
+		type="by.qa.connectionproject.models.Country">
+		<id property="id" column="id" />
+		<result property="countryName" column="country_name" />
+	</resultMap>
+	<select id="getEntityById" parameterType="java.lang.Long" resultMap="city">
+		SELECT * FROM Cities INNER JOIN Countries ON Countries.id = Cities.country_id WHERE Cities.id = #{id}
+	</select>
+	<select id="getAll" resultMap="city">
+		SELECT * FROM Cities INNER JOIN Countries ON Countries.id = Cities.country_id
+	</select>
+	<insert id="create" parameterType="by.qa.connectionproject.models.City" keyProperty="id" useGeneratedKeys="true">
+		INSERT INTO Cities(city_name,country_id) VALUES(#{cityName},#{country.id}) 	
+	</insert>
+	<update id="update"
+		parameterType="by.qa.connectionproject.models.City">
+		UPDATE Cities SET city_name = #{cityName} WHERE id = #{id}
+	</update>
+	<delete id="delete" parameterType="java.lang.Long">
+		DELETE FROM Cities WHERE id = #{id}
+	</delete>
+	 <select id="getCityByUserId" parameterType="java.lang.Long"
+		resultMap="city"> 
+		SELECT Cities.id, Cities.city_name, Countries.id, Countries.country_name FROM Cities INNER JOIN Countries ON Countries.id=Cities.country_id INNER JOIN Users ON Users.city_id=Cities.id WHERE Users.id = #{id}
+	</select>
+</mapper>

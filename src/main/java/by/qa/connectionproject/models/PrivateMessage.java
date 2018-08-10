@@ -9,26 +9,26 @@ import by.qa.connectionproject.parser.xmlparser.DateAdapter;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class PrivateMessage extends AbstractEntity {
 
-	private Integer fromUserId;
-	private Integer toUserId;
+	private Long fromUserId;
+	private Long toUserId;
 	private String messageText;
 	@XmlJavaTypeAdapter(DateAdapter.class)
 	private Date dateSend;
 	private Integer dialogId;
 
-	public Integer getFromUserId() {
+	public Long getFromUserId() {
 		return fromUserId;
 	}
 
-	public void setFromUserId(Integer fromUserId) {
+	public void setFromUserId(Long fromUserId) {
 		this.fromUserId = fromUserId;
 	}
 
-	public Integer getToUserId() {
+	public Long getToUserId() {
 		return toUserId;
 	}
 
-	public void setToUserId(Integer toUserId) {
+	public void setToUserId(Long toUserId) {
 		this.toUserId = toUserId;
 	}
 

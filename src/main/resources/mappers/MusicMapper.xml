@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="by.qa.connectionproject.dao.IMusicDAO">
+	<resultMap id="music"
+		type="by.qa.connectionproject.models.file.Music">
+		<id property="id" column="id" />
+		<result property="artistName" column="artist_name" />
+		<result property="songName" column="song_name" />
+		<result property="publicationDate" column="publication_date" />
+		<result property="profileId" column="profile_id" />
+	</resultMap>
+	<select id="getEntityById" parameterType="java.lang.Long"
+		resultMap="music"> 
+		SELECT * FROM Music WHERE id = #{id}
+	</select>
+	<select id="getAll" resultMap="music">
+		SELECT * FROM Music
+	</select>
+	<insert id="create" parameterType="by.qa.connectionproject.models.file.Music"  keyProperty="id" useGeneratedKeys="true">
+		INSERT INTO Music (artist_name,song_name,publication_date,profile_id) VALUES (#{artistName},#{songName},#{publicationDate},#{profileId}) 	    
+	</insert>
+	 <update id="update" parameterType="by.qa.connectionproject.models.file.Music">
+        UPDATE Music SET artist_name = #{artistName}, song_name = #{songName}, publication_date = #{publicationDate}, profile_id = #{profileId} WHERE id = #{id} 
+    </update>
+	<delete id="delete" parameterType="java.lang.Long">
+        DELETE FROM Music WHERE id = #{id}
+    </delete>
+    <select id="getAllMusicByProfileId" parameterType="java.lang.Long"
+		resultMap="music"> 
+		SELECT Music.id, Music.artist_name, Music.song_name, Music.publication_date, Music.profile_id FROM Music RIGHT JOIN Profiles ON Profiles.id=Music.profile_id WHERE Profiles.id = #{id}
+	</select>
+</mapper>

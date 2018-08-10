@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="by.qa.connectionproject.dao.IProfileDAO">
+	<resultMap id="profile"
+		type="by.qa.connectionproject.models.Profile">
+		<id property="id" column="id" />
+		<result property="status" column="status" />
+		<result property="login" column="login" />
+		<result property="password" column="password" />
+	</resultMap>
+	<select id="getEntityById" parameterType="java.lang.Long"
+		resultMap="profile"> 
+		SELECT * FROM Profiles WHERE id = #{id}
+	</select>
+	<select id="getAll" resultMap="profile">
+		SELECT * FROM Profiles
+	</select>
+	 <update id="update" parameterType="by.qa.connectionproject.models.Profile">
+        UPDATE Profiles SET status = #{status}, login = #{login}, password = #{password} WHERE id = #{id} 
+    </update>
+	<delete id="delete" parameterType="java.lang.Long">
+        DELETE FROM Profiles WHERE id = #{id}
+    </delete>
+    <select id="getProfileByMusicId" parameterType="java.lang.Long"
+		resultMap="profile"> 
+		SELECT Profiles.id, Profiles.status, Profiles.login, Profiles.password FROM Profiles INNER JOIN Music ON Music.profile_id=Profiles.id WHERE Music.id = #{id}
+	</select>
+	<select id="getProfileByVideoId" parameterType="java.lang.Long"
+		resultMap="profile"> 
+		SELECT Profiles.id, Profiles.status, Profiles.login, Profiles.password FROM Profiles INNER JOIN Videos ON Videos.profile_id=Profiles.id WHERE Videos.id = #{id}
+	</select>
+	<select id="getProfileByAlbumId" parameterType="java.lang.Long"
+		resultMap="profile"> 
+		SELECT Profiles.id, Profiles.status, Profiles.login, Profiles.password FROM Profiles INNER JOIN Albums ON Albums.profile_id=Profiles.id WHERE Albums.id = #{id}
+	</select>
+	<select id="getProfileByUserId" parameterType="java.lang.Long"
+		resultMap="profile"> 
+		SELECT Profiles.id, Profiles.status, Profiles.login, Profiles.password FROM Profiles INNER JOIN Users ON Users.profile_id=Profiles.id WHERE Users.id = #{id}
+	</select>
+	<select id="getAllProfilesByGroupId" parameterType="java.lang.Long"
+		resultMap="profile"> 
+		SELECT Profiles.id, Profiles.status, Profiles.login, Profiles.password FROM Profiles INNER JOIN Groups_has_profiles ON Groups_has_profiles.profile_id=Profiles.id INNER JOIN Public_groups ON Public_groups.id=Groups_has_profiles.group_id WHERE Public_groups.id = #{id}
+	</select>
+</mapper>

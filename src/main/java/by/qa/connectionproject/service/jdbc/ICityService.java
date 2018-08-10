@@ -4,5 +4,5 @@ import by.qa.connectionproject.models.City;
 
 public interface ICityService {
 
-	City getCityById(Integer id);
+	City getCityById(Long id);
 }

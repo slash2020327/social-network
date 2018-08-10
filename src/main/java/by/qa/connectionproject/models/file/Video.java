@@ -3,7 +3,7 @@ package by.qa.connectionproject.models.file;
 public class Video extends File {
 
 	private String name;
-	private Integer profileId;
+	private Long profileId;
 
 	public String getName() {
 		return name;
@@ -13,11 +13,11 @@ public class Video extends File {
 		this.name = name;
 	}
 
-	public Integer getProfileId() {
+	public Long getProfileId() {
 		return profileId;
 	}
 
-	public void setProfileId(Integer profileId) {
+	public void setProfileId(Long profileId) {
 		this.profileId = profileId;
 	}
 

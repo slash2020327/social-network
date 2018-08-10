@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="by.qa.connectionproject.dao.IFriendshipDAO">
+	<resultMap id="friendship"
+		type="by.qa.connectionproject.models.Friendship">
+		<id property="id" column="id" />
+		<result property="userOneId" column="user1_id" />
+		<result property="userTwoId" column="user2_id" />
+		<result property="status" column="status" />
+	</resultMap>
+	<select id="getEntityById" parameterType="java.lang.Long"
+		resultMap="friendship"> 
+		SELECT * FROM Friendship WHERE id = #{id}
+	</select>
+	<select id="getAll" resultMap="friendship">
+		SELECT * FROM Friendship
+	</select>
+	<insert id="create" parameterType="by.qa.connectionproject.models.Friendship"  keyProperty="id" useGeneratedKeys="true">
+		INSERT INTO Friendship (user1_id,user2_id,status) VALUES (#{userOneId},#{userTwoId},#{status}) 	  	    
+	</insert>
+	 <update id="update" parameterType="by.qa.connectionproject.models.Friendship">
+        UPDATE Friendship SET user1_id = #{userOneId}, user2_id = #{userTwoId}, status = #{status} WHERE id = #{id} 
+    </update>
+	<delete id="delete" parameterType="java.lang.Long">
+        DELETE FROM Friendship WHERE id = #{id}
+    </delete>
+    <select id="getAllFriendshipByUserId" parameterType="java.lang.Long"
+		resultMap="friendship"> 
+		SELECT Friendship.id, Friendship.user1_id, Friendship.user2_id, Friendship.status FROM Friendship RIGHT JOIN Users ON Users.id=Friendship.user1_id WHERE Users.id = #{id}
+	</select>
+</mapper>

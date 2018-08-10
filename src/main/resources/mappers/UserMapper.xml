@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="by.qa.connectionproject.dao.IUserDAO">
+	<resultMap id="user"
+		type="by.qa.connectionproject.models.User">
+		<id property="id" column="id" />
+		<result property="firstName" column="first_name" />
+		<result property="lastName" column="last_name" />
+		<result property="phoneNumber" column="phone_number" />
+		<association property="profile" resultMap="profile" />
+		<association property="city" resultMap="city" />
+	</resultMap>
+	<resultMap id="profile"
+		type="by.qa.connectionproject.models.Profile">
+		<id property="id" column="id" />
+		<result property="status" column="status" />
+		<result property="login" column="login" />
+		<result property="password" column="password" />
+	</resultMap>
+	<resultMap id="city"
+		type="by.qa.connectionproject.models.City">
+		<id property="id" column="id" />
+		<result property="cityName" column="city_name" />
+		<association property="country" resultMap="country" />
+	</resultMap>
+	<resultMap id="country"
+		type="by.qa.connectionproject.models.Country">
+		<id property="id" column="id" />
+		<result property="countryName" column="country_name" />
+	</resultMap>
+	<select id="getEntityById" parameterType="java.lang.Long" resultMap="user">
+		SELECT * FROM Users INNER JOIN Profiles ON Profiles.id = Users.profile_id LEFT JOIN Cities ON Cities.id=Users.city_id LEFT JOIN Countries ON Countries.id=Cities.country_id WHERE Users.id = #{id}
+	</select>
+	<select id="getAll" resultMap="user">
+		SELECT * FROM Users INNER JOIN Profiles ON Profiles.id = Users.profile_id LEFT JOIN Cities ON Cities.id=Users.city_id LEFT JOIN Countries ON Countries.id=Cities.country_id
+	</select>
+	<update id="update"
+		parameterType="by.qa.connectionproject.models.User">
+		UPDATE Users SET first_name = #{firstName}, last_name = #{lastName}, phone_number = #{phoneNumber} , city_id = #{city.id} WHERE id = #{id}
+	</update>
+	<delete id="delete" parameterType="java.lang.Long">
+		DELETE FROM Users WHERE id = #{id}
+	</delete>
+	<select id="getUserByDialogId" parameterType="java.lang.Long" resultMap="user"> 
+		SELECT * FROM Users LEFT JOIN Cities ON Cities.id=Users.city_id LEFT JOIN Countries ON Countries.id=Cities.country_id INNER JOIN Profiles ON Profiles.id=Users.profile_id INNER JOIN Dialogues ON Dialogues.user_id=Users.id WHERE Dialogues.id = #{id}
+	</select>
+	<select id="getUserOneByFriendshipId" parameterType="java.lang.Long" resultMap="user"> 
+		SELECT * FROM Users LEFT JOIN Cities ON Cities.id=Users.city_id LEFT JOIN Countries ON Countries.id=Cities.country_id INNER JOIN Profiles ON Profiles.id=Users.profile_id INNER JOIN Friendship ON Friendship.user1_id=Users.id WHERE Friendship.id = #{id}
+	</select>
+	<select id="getUserTwoByFriendshipId" parameterType="java.lang.Long" resultMap="user"> 
+		SELECT * FROM Users LEFT JOIN Cities ON Cities.id=Users.city_id LEFT JOIN Countries ON Countries.id=Cities.country_id INNER JOIN Profiles ON Profiles.id=Users.profile_id INNER JOIN Friendship ON Friendship.user2_id=Users.id WHERE Friendship.id = #{id}
+	</select>
+	<select id="getToUserByPrivateMessageId" parameterType="java.lang.Long" resultMap="user"> 
+		SELECT * FROM Users LEFT JOIN Cities ON Cities.id=Users.city_id LEFT JOIN Countries ON Countries.id=Cities.country_id INNER JOIN Profiles ON Profiles.id=Users.profile_id INNER JOIN Private_messages ON Private_messages.to_user=Users.id WHERE Private_messages.id = #{id}
+	</select>
+	<select id="getFromUserByPrivateMessageId" parameterType="java.lang.Long" resultMap="user"> 
+		SELECT * FROM Users LEFT JOIN Cities ON Cities.id=Users.city_id LEFT JOIN Countries ON Countries.id=Cities.country_id INNER JOIN Profiles ON Profiles.id=Users.profile_id INNER JOIN Private_messages ON Private_messages.from_user=Users.id WHERE Private_messages.id = #{id}
+	</select>
+</mapper>

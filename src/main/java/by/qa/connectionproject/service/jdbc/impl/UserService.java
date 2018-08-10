@@ -11,13 +11,19 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import by.qa.connectionproject.connection.ConnectionPool;
-import by.qa.connectionproject.dao.jdbc.IAbstractDAO;
+import by.qa.connectionproject.dao.IAbstractDAO;
 import by.qa.connectionproject.dao.jdbc.impl.AlbumDAO;
 import by.qa.connectionproject.dao.jdbc.impl.CityDAO;
 import by.qa.connectionproject.dao.jdbc.impl.CountryDAO;
 import by.qa.connectionproject.dao.jdbc.impl.DialogDAO;
+import by.qa.connectionproject.dao.jdbc.impl.FriendshipDAO;
+import by.qa.connectionproject.dao.jdbc.impl.GroupDAO;
+import by.qa.connectionproject.dao.jdbc.impl.MusicDAO;
+import by.qa.connectionproject.dao.jdbc.impl.PhotoDAO;
+import by.qa.connectionproject.dao.jdbc.impl.PrivateMessageDAO;
 import by.qa.connectionproject.dao.jdbc.impl.ProfileDAO;
 import by.qa.connectionproject.dao.jdbc.impl.UserDAO;
+import by.qa.connectionproject.dao.jdbc.impl.VideoDAO;
 import by.qa.connectionproject.models.Album;
 import by.qa.connectionproject.models.City;
 import by.qa.connectionproject.models.Dialog;
@@ -36,9 +42,16 @@ public class UserService implements IUserService {
 	private CountryDAO countryDAO = new CountryDAO();
 	private AlbumDAO albumDAO = new AlbumDAO();
 	private DialogDAO dialogDAO = new DialogDAO();
+	private GroupDAO groupDAO = new GroupDAO();
+	private MusicDAO musicDAO = new MusicDAO();
+	private VideoDAO videoDAO = new VideoDAO();
+	private PhotoDAO photoDAO = new PhotoDAO();
+	private FriendshipDAO friendshipDAO = new FriendshipDAO();
+	private PrivateMessageDAO messageDAO = new PrivateMessageDAO();
+	
 
 	@Override
-	public User getUserById(Integer id) {
+	public User getUserById(Long id) {
 		User user = userDAO.getEntityById(id);
 		user.setCity(cityDAO.getCityByUserId(id));
 		user.setProfile(profileDAO.getProfileByUserId(id));
@@ -55,22 +68,22 @@ public class UserService implements IUserService {
 			City city = user.getCity();
 			city.setCountry(countryDAO.getCountryByCityId(city.getId()));
 			Profile profile = user.getProfile();
-			profile.setGroups(profileDAO.getAllGroupsByProfileId(profile.getId()));
-			profile.setMusic(profileDAO.getAllMusicByProfileId(profile.getId()));
-			profile.setVideos(profileDAO.getAllVideoByProfileId(profile.getId()));
-			List<Album> albums = profileDAO.getAllAlbumsByProfileId(profile.getId());
+			profile.setGroups(groupDAO.getAllGroupsByProfileId(profile.getId()));
+			profile.setMusic(musicDAO.getAllMusicByProfileId(profile.getId()));
+			profile.setVideos(videoDAO.getAllVideoByProfileId(profile.getId()));
+			List<Album> albums = albumDAO.getAllAlbumsByProfileId(profile.getId());
 			for (Album album : albums) {
-				List<Photo> photos = albumDAO.getAllPhotosByAlbumId(album.getId());
+				List<Photo> photos = photoDAO.getAllPhotosByAlbumId(album.getId());
 				album.setPhotos(photos);
 			}
 			profile.setAlbums(albums);
-			List<Dialog> dialogues = userDAO.getAllDialoguesByUserId(user.getId());
+			List<Dialog> dialogues = dialogDAO.getAllDialoguesByUserId(user.getId());
 			for (Dialog dialog : dialogues) {
-				List<PrivateMessage> privateMessages = dialogDAO.getAllMessagesByDialogId(dialog.getId());
+				List<PrivateMessage> privateMessages = messageDAO.getAllMessagesByDialogId(dialog.getId());
 				dialog.setPrivateMessages(privateMessages);
 			}
 			user.setDialogues(dialogues);
-			user.setFriendshipList(userDAO.getAllFriendshipByUserId(user.getId()));
+			user.setFriendshipList(friendshipDAO.getAllFriendshipByUserId(user.getId()));
 		}
 		return users;
 	}
@@ -93,7 +106,7 @@ public class UserService implements IUserService {
 			statementUser.setString(2, user.getFirstName());
 			statementUser.setString(3, user.getLastName());
 			statementUser.setString(4, user.getPhoneNumber());
-			statementUser.setInt(5, user.getCity().getId());
+			statementUser.setLong(5, user.getCity().getId());
 			resultSet = statementProfile.getGeneratedKeys();
 			if (resultSet.next()) {
 				statementUser.setInt(1, resultSet.getInt(1));

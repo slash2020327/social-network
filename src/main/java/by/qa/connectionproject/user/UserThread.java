@@ -3,7 +3,6 @@ package by.qa.connectionproject.user;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Random;
-
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

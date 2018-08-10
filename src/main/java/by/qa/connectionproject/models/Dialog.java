@@ -10,16 +10,16 @@ import by.qa.connectionproject.parser.xmlparser.DateAdapter;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Dialog extends AbstractEntity {
 
-	private Integer dialogOwnerId;
+	private Long dialogOwnerId;
 	@XmlJavaTypeAdapter(DateAdapter.class)
 	private Date creationDate;
 	private List<PrivateMessage> privateMessages;
 
-	public Integer getDialogOwnerId() {
+	public Long getDialogOwnerId() {
 		return dialogOwnerId;
 	}
 
-	public void setDialogOwnerId(Integer dialogOwnerId) {
+	public void setDialogOwnerId(Long dialogOwnerId) {
 		this.dialogOwnerId = dialogOwnerId;
 	}
 

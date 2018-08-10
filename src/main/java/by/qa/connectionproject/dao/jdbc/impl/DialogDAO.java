@@ -12,10 +12,9 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import by.qa.connectionproject.connection.ConnectionPool;
-import by.qa.connectionproject.dao.jdbc.IAbstractDAO;
-import by.qa.connectionproject.dao.jdbc.IDialogDAO;
+import by.qa.connectionproject.dao.IAbstractDAO;
+import by.qa.connectionproject.dao.IDialogDAO;
 import by.qa.connectionproject.models.Dialog;
-import by.qa.connectionproject.models.PrivateMessage;
 
 public class DialogDAO implements IDialogDAO {
 
@@ -23,15 +22,15 @@ public class DialogDAO implements IDialogDAO {
 	private final static String GET_ALL_DIALOGUES = "SELECT * FROM Dialogues";
 	private final static String GET_DIALOG_BY_MESSAGE_ID = "SELECT Dialogues.id, Dialogues.user_id, Dialogues.creation_date FROM Dialogues "
 			+ "INNER JOIN Private_messages ON Private_messages.dialog_id=Dialogues.id WHERE Private_messages.id IN(?)";
-	private final static String GET_ALL_MESSAGES_BY_DIALOG_ID = "SELECT Private_messages.id, Private_messages.from_user, Private_messages.to_user, Private_messages.text, Private_messages.date_send, Private_messages.dialog_id FROM Private_messages "
-			+ "INNER JOIN Dialogues ON Dialogues.id=Private_messages.dialog_id WHERE Dialogues.id IN(?)";
 	private final static String DELETE_DIALOG_BY_ID = "DELETE FROM Dialogues WHERE id=?";
 	private final static String INSERT_DIALOG = "INSERT INTO Dialogues (user_id, creation_date) VALUES (?)";
 	private final static String UPDATE_DIALOG = "UPDATE Dialogues SET user_id = ?, creation_date = ? WHERE (id = ?)";
+	private final static String GET_ALL_DIALOGUES_BY_USER_ID = "SELECT Dialogues.id, Dialogues.user_id, Dialogues.creation_date FROM Dialogues "
+			+ "INNER JOIN Users ON Users.id=Dialogues.user_id WHERE Users.id IN(?)";
 	private static Logger logger = LogManager.getLogger();
 
 	@Override
-	public Dialog getEntityById(Integer id) {
+	public Dialog getEntityById(Long id) {
 		Dialog dialog = new Dialog();
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -39,7 +38,7 @@ public class DialogDAO implements IDialogDAO {
 		try {
 			connection = ConnectionPool.getInstance().takeConnection();
 			statement = connection.prepareStatement(GET_DIALOG_BY_ID);
-			statement.setInt(1, id);
+			statement.setLong(1, id);
 			resultSet = statement.executeQuery();
 			resultSet.next();
 			setDialogFields(resultSet, dialog);
@@ -80,8 +79,8 @@ public class DialogDAO implements IDialogDAO {
 
 	private Dialog setDialogFields(ResultSet resultSet, Dialog dialog) {
 		try {
-			dialog.setId(resultSet.getInt("id"));
-			dialog.setDialogOwnerId(resultSet.getInt("user_id"));
+			dialog.setId(resultSet.getLong("id"));
+			dialog.setDialogOwnerId(resultSet.getLong("user_id"));
 			Timestamp dateTime = resultSet.getTimestamp("creation_date");
 			Date date = new Date(dateTime.getTime());
 			dialog.setCreationDate(date);
@@ -92,13 +91,13 @@ public class DialogDAO implements IDialogDAO {
 	}
 
 	@Override
-	public void delete(Integer id) {
+	public void delete(Long id) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
 			connection = ConnectionPool.getInstance().takeConnection();
 			statement = connection.prepareStatement(DELETE_DIALOG_BY_ID);
-			statement.setInt(1, id);
+			statement.setLong(1, id);
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			logger.log(Level.ERROR, "Delete from the data base error", e);
@@ -116,7 +115,7 @@ public class DialogDAO implements IDialogDAO {
 			connection = ConnectionPool.getInstance().takeConnection();
 			connection.setAutoCommit(false);
 			statement = connection.prepareStatement(INSERT_DIALOG);
-			statement.setInt(1, dialog.getDialogOwnerId());
+			statement.setLong(1, dialog.getDialogOwnerId());
 			statement.setObject(2, dialog.getCreationDate());
 			statement.executeUpdate();
 			connection.commit();
@@ -142,9 +141,9 @@ public class DialogDAO implements IDialogDAO {
 			connection = ConnectionPool.getInstance().takeConnection();
 			connection.setAutoCommit(false);
 			statement = connection.prepareStatement(UPDATE_DIALOG);
-			statement.setInt(1, dialog.getDialogOwnerId());
+			statement.setLong(1, dialog.getDialogOwnerId());
 			statement.setObject(2, dialog.getCreationDate());
-			statement.setInt(3, dialog.getId());
+			statement.setLong(3, dialog.getId());
 			statement.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
@@ -162,27 +161,24 @@ public class DialogDAO implements IDialogDAO {
 	}
 
 	@Override
-	public List<PrivateMessage> getAllMessagesByDialogId(Integer id) {
-		List<PrivateMessage> privateMessages = new ArrayList<>();
+	public List<Dialog> getAllDialoguesByUserId(Long id) {
+		List<Dialog> dialogues = new ArrayList<>();
 		Connection connection = null;
 		PreparedStatement statement = null;
 		ResultSet resultSet = null;
 		try {
 			connection = ConnectionPool.getInstance().takeConnection();
-			statement = connection.prepareStatement(GET_ALL_MESSAGES_BY_DIALOG_ID);
-			statement.setInt(1, id);
+			statement = connection.prepareStatement(GET_ALL_DIALOGUES_BY_USER_ID);
+			statement.setLong(1, id);
 			resultSet = statement.executeQuery();
 			while (resultSet.next()) {
-				PrivateMessage privateMessage = new PrivateMessage();
-				privateMessage.setId(resultSet.getInt("id"));
-				privateMessage.setFromUserId(resultSet.getInt("from_user"));
-				privateMessage.setToUserId(resultSet.getInt("to_user"));
-				privateMessage.setMessageText(resultSet.getString("text"));
-				Timestamp dateTime = resultSet.getTimestamp("date_send");
+				Dialog dialog = new Dialog();
+				dialog.setId(resultSet.getLong("id"));
+				dialog.setDialogOwnerId(resultSet.getLong("user_id"));
+				Timestamp dateTime = resultSet.getTimestamp("creation_date");
 				Date date = new Date(dateTime.getTime());
-				privateMessage.setDateSend(date);
-				privateMessage.setDialogId(resultSet.getInt("dialog_id"));
-				privateMessages.add(privateMessage);
+				dialog.setCreationDate(date);
+				dialogues.add(dialog);
 			}
 		} catch (SQLException e) {
 			logger.log(Level.ERROR, "Request from the data base error", e);
@@ -191,11 +187,11 @@ public class DialogDAO implements IDialogDAO {
 			IAbstractDAO.closePreparedStatement(statement);
 			ConnectionPool.getInstance().releaseConnection(connection);
 		}
-		return privateMessages;
+		return dialogues;
 	}
-
+	
 	@Override
-	public Dialog getDialogByMessageId(Integer id) {
+	public Dialog getDialogByMessageId(Long id) {
 		Dialog dialog = new Dialog();
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -203,7 +199,7 @@ public class DialogDAO implements IDialogDAO {
 		try {
 			connection = ConnectionPool.getInstance().takeConnection();
 			statement = connection.prepareStatement(GET_DIALOG_BY_MESSAGE_ID);
-			statement.setInt(1, id);
+			statement.setLong(1, id);
 			resultSet = statement.executeQuery();
 			resultSet.next();
 			setDialogFields(resultSet, dialog);

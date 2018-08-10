@@ -10,5 +10,5 @@ public interface IUserService {
 
 	List<User> getAll();
 
-	User getUserById(Integer id);
+	User getUserById(Long id);
 }

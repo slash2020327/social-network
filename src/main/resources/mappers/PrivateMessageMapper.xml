@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="by.qa.connectionproject.dao.IPrivateMessageDAO">
+	<resultMap id="message"
+		type="by.qa.connectionproject.models.PrivateMessage">
+		<id property="id" column="id" />
+		<result property="fromUserId" column="from_user" />
+		<result property="toUserId" column="to_user" />
+		<result property="messageText" column="text" />
+		<result property="dateSend" column="date_send" />
+		<result property="dialogId" column="dialog_id" />
+	</resultMap>
+	<select id="getEntityById" parameterType="java.lang.Long"
+		resultMap="message"> 
+		SELECT * FROM Private_messages WHERE id = #{id}
+	</select>
+	<select id="getAll" resultMap="message">
+		SELECT * FROM Private_messages
+	</select>
+	<insert id="create" parameterType="by.qa.connectionproject.models.PrivateMessage"  keyProperty="id" useGeneratedKeys="true">
+		INSERT INTO Private_messages (from_user,to_user,text,date_send,dialog_id) VALUES (#{fromUserId},#{toUserId},#{messageText},#{dateSend},#{dialogId}) 	    
+	</insert>
+	 <update id="update" parameterType="by.qa.connectionproject.models.PrivateMessage">
+        UPDATE Private_messages SET from_user = #{fromUserId}, to_user = #{toUserId}, text = #{messageText}, date_send = #{dateSend}, dialog_id = #{dialogId} WHERE id = #{id} 
+    </update>
+	<delete id="delete" parameterType="java.lang.Long">
+        DELETE FROM Private_messages WHERE id = #{id}
+    </delete>
+    <select id="getAllMessagesByDialogId" parameterType="java.lang.Long"
+		resultMap="message"> 
+		SELECT Private_messages.id, Private_messages.from_user, Private_messages.to_user, Private_messages.text, Private_messages.date_send, Private_messages.dialog_id FROM Private_messages RIGHT JOIN Dialogues ON Dialogues.id=Private_messages.dialog_id WHERE Dialogues.id = #{id}
+	</select>
+</mapper>

@@ -11,7 +11,7 @@ public class CityService implements ICityService {
 	private CountryDAO countryDAO = new CountryDAO();
 	
 	@Override
-	public City getCityById(Integer id) {
+	public City getCityById(Long id) {
 		City city = cityDAO.getEntityById(id);
 		city.setCountry(countryDAO.getCountryByCityId(id));
 		return city;

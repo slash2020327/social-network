@@ -39,7 +39,7 @@ public class City extends AbstractEntity{
 
 	@Override
 	public String toString() {
-		return "City [id=" + getId() + ", cityName=" + cityName + ", countryName=" + country.getCountryName() + "]";
+		return "City [id=" + getId() + ", cityName=" + cityName + ", countryName=" + country.getCountryName() +", countryId=" + country.getId() +"]";
 	}
 
 }
