@@ -2,14 +2,14 @@
 <!DOCTYPE mapper
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="by.qa.connectionproject.dao.IDialogDAO">
+<mapper namespace="by.qa.connectionproject.service.IDialogService">
 	<resultMap id="dialog"
 		type="by.qa.connectionproject.models.Dialog">
 		<id property="id" column="id" />
 		<result property="dialogOwnerId" column="user_id" />
 		<result property="creationDate" column="creation_date" />
 	</resultMap>
-	<select id="getEntityById" parameterType="java.lang.Long"
+	<select id="getDialogById" parameterType="java.lang.Long"
 		resultMap="dialog"> 
 		SELECT * FROM Dialogues WHERE id = #{id}
 	</select>

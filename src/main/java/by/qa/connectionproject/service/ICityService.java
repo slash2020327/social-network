@@ -1,11 +1,11 @@
-package by.qa.connectionproject.dao;
+package by.qa.connectionproject.service;
 
 import java.util.List;
 import by.qa.connectionproject.models.City;
 
-public interface ICityDAO extends IAbstractDAO<Long, City> {
+public interface ICityService {
 
-	City getEntityById(Long id);
+	City getCityById(Long id);
 
 	City getCityByUserId(Long id);
 
@@ -16,6 +16,4 @@ public interface ICityDAO extends IAbstractDAO<Long, City> {
 	void update(City city);
 
 	void create(City city);
-	
-	List<City> getAllCitiesByCountryId(Long id);
 }

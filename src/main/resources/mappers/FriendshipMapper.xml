@@ -2,7 +2,7 @@
 <!DOCTYPE mapper
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="by.qa.connectionproject.dao.IFriendshipDAO">
+<mapper namespace="by.qa.connectionproject.service.IFriendshipService">
 	<resultMap id="friendship"
 		type="by.qa.connectionproject.models.Friendship">
 		<id property="id" column="id" />
@@ -10,7 +10,7 @@
 		<result property="userTwoId" column="user2_id" />
 		<result property="status" column="status" />
 	</resultMap>
-	<select id="getEntityById" parameterType="java.lang.Long"
+	<select id="getFriendshipById" parameterType="java.lang.Long"
 		resultMap="friendship"> 
 		SELECT * FROM Friendship WHERE id = #{id}
 	</select>

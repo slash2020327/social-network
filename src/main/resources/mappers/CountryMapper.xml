@@ -2,13 +2,13 @@
 <!DOCTYPE mapper
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="by.qa.connectionproject.dao.ICountryDAO">
+<mapper namespace="by.qa.connectionproject.service.ICountryService">
 	<resultMap id="country"
 		type="by.qa.connectionproject.models.Country">
 		<id property="id" column="id" />
 		<result property="countryName" column="country_name" />
 	</resultMap>
-	<select id="getEntityById" parameterType="java.lang.Long"
+	<select id="getCountryById" parameterType="java.lang.Long"
 		resultMap="country"> 
 		SELECT * FROM Countries WHERE id = #{id}
 	</select>

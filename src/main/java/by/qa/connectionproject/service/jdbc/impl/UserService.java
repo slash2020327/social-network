@@ -31,7 +31,7 @@ import by.qa.connectionproject.models.PrivateMessage;
 import by.qa.connectionproject.models.Profile;
 import by.qa.connectionproject.models.User;
 import by.qa.connectionproject.models.file.Photo;
-import by.qa.connectionproject.service.jdbc.IUserService;
+import by.qa.connectionproject.service.IUserService;
 
 public class UserService implements IUserService {
 
@@ -48,13 +48,14 @@ public class UserService implements IUserService {
 	private PhotoDAO photoDAO = new PhotoDAO();
 	private FriendshipDAO friendshipDAO = new FriendshipDAO();
 	private PrivateMessageDAO messageDAO = new PrivateMessageDAO();
-	
 
 	@Override
 	public User getUserById(Long id) {
 		User user = userDAO.getEntityById(id);
 		user.setCity(cityDAO.getCityByUserId(id));
 		user.setProfile(profileDAO.getProfileByUserId(id));
+		user.setFriendshipList(friendshipDAO.getAllFriendshipByUserId(user.getId()));
+		user.setDialogues(dialogDAO.getAllDialoguesByUserId(user.getId()));
 		return user;
 	}
 
@@ -87,7 +88,7 @@ public class UserService implements IUserService {
 		}
 		return users;
 	}
-	
+
 	@Override
 	public void create(User user, Profile profile) {
 		Connection connection = null;
@@ -97,7 +98,8 @@ public class UserService implements IUserService {
 		try {
 			connection = ConnectionPool.getInstance().takeConnection();
 			connection.setAutoCommit(false);
-			statementProfile = connection.prepareStatement(ProfileDAO.getInsertProfile(), Statement.RETURN_GENERATED_KEYS);
+			statementProfile = connection.prepareStatement(ProfileDAO.getInsertProfile(),
+					Statement.RETURN_GENERATED_KEYS);
 			statementProfile.setString(1, profile.getStatus());
 			statementProfile.setString(2, profile.getLogin());
 			statementProfile.setString(3, profile.getPassword());
@@ -127,5 +129,45 @@ public class UserService implements IUserService {
 			IAbstractDAO.closePreparedStatement(statementUser);
 			ConnectionPool.getInstance().releaseConnection(connection);
 		}
+	}
+
+	@Override
+	public void delete(Long id) {
+		userDAO.delete(id);
+	}
+
+	@Override
+	public void update(User user) {
+		userDAO.update(user);
+	}
+
+	@Override
+	public User getUserByDialogId(Long id) {
+		User user = userDAO.getUserByDialogId(id);
+		return user;
+	}
+
+	@Override
+	public User getUserOneByFriendshipId(Long id) {
+		User user = userDAO.getUserOneByFriendshipId(id);
+		return user;
+	}
+
+	@Override
+	public User getUserTwoByFriendshipId(Long id) {
+		User user = userDAO.getUserTwoByFriendshipId(id);
+		return user;
+	}
+
+	@Override
+	public User getToUserByPrivateMessageId(Long id) {
+		User user = userDAO.getToUserByPrivateMessageId(id);
+		return user;
+	}
+
+	@Override
+	public User getFromUserByPrivateMessageId(Long id) {
+		User user = userDAO.getFromUserByPrivateMessageId(id);
+		return user;
 	}
 }

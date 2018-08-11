@@ -1,13 +1,15 @@
-package by.qa.connectionproject.dao;
+package by.qa.connectionproject.service;
 
 import java.util.List;
+
+import by.qa.connectionproject.models.Profile;
 import by.qa.connectionproject.models.User;
 
-public interface IUserDAO extends IAbstractDAO<Long, User> {
+public interface IUserService {
 
 	List<User> getAll();
 
-	User getEntityById(Long id);
+	User getUserById(Long id);
 
 	void delete(Long id);
 
@@ -23,5 +25,5 @@ public interface IUserDAO extends IAbstractDAO<Long, User> {
 
 	User getUserByDialogId(Long id);
 
-	List<User> getAllUsersByCityId(Long id);
+	void create(User user, Profile profile);
 }

@@ -2,7 +2,7 @@
 <!DOCTYPE mapper
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="by.qa.connectionproject.dao.IMusicDAO">
+<mapper namespace="by.qa.connectionproject.service.IMusicService">
 	<resultMap id="music"
 		type="by.qa.connectionproject.models.file.Music">
 		<id property="id" column="id" />
@@ -11,7 +11,7 @@
 		<result property="publicationDate" column="publication_date" />
 		<result property="profileId" column="profile_id" />
 	</resultMap>
-	<select id="getEntityById" parameterType="java.lang.Long"
+	<select id="getMusicById" parameterType="java.lang.Long"
 		resultMap="music"> 
 		SELECT * FROM Music WHERE id = #{id}
 	</select>

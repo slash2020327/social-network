@@ -1,11 +1,11 @@
-package by.qa.connectionproject.dao;
+package by.qa.connectionproject.service;
 
 import java.util.List;
 import by.qa.connectionproject.models.Country;
 
-public interface ICountryDAO extends IAbstractDAO<Long, Country> {
+public interface ICountryService {
 
-	Country getEntityById(Long id);
+	Country getCountryById(Long id);
 	
 	List<Country> getAll();
 	

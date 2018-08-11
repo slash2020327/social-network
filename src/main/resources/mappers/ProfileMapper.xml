@@ -2,7 +2,7 @@
 <!DOCTYPE mapper
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="by.qa.connectionproject.dao.IProfileDAO">
+<mapper namespace="by.qa.connectionproject.service.IProfileService">
 	<resultMap id="profile"
 		type="by.qa.connectionproject.models.Profile">
 		<id property="id" column="id" />
@@ -10,7 +10,7 @@
 		<result property="login" column="login" />
 		<result property="password" column="password" />
 	</resultMap>
-	<select id="getEntityById" parameterType="java.lang.Long"
+	<select id="getProfileById" parameterType="java.lang.Long"
 		resultMap="profile"> 
 		SELECT * FROM Profiles WHERE id = #{id}
 	</select>

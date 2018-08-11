@@ -9,14 +9,11 @@ import java.util.List;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import by.qa.connectionproject.connection.ConnectionPool;
 import by.qa.connectionproject.dao.IAbstractDAO;
 import by.qa.connectionproject.dao.ICityDAO;
 import by.qa.connectionproject.models.City;
 import by.qa.connectionproject.models.Country;
-import by.qa.connectionproject.models.Profile;
-import by.qa.connectionproject.models.User;
 
 public class CityDAO implements ICityDAO {
 
@@ -24,8 +21,8 @@ public class CityDAO implements ICityDAO {
 	private final static String GET_ALL_CITIES = "SELECT * FROM Cities";
 	private final static String GET_CITY_BY_USER_ID = "SELECT Cities.id, Cities.city_name, Cities.country_id FROM Cities "
 			+ "RIGHT JOIN Users ON Users.city_id=Cities.id WHERE Users.id IN(?)";
-	private final static String GET_ALL_USERS_BY_CITY_ID = "SELECT Users.id, Users.profile_id, Users.first_name, Users.last_name, Users.phone_number, Users.city_id FROM Users "
-			+ "INNER JOIN Cities ON Cities.id=Users.city_id WHERE Cities.id IN(?)";
+	private final static String GET_ALL_CITIES_BY_COUNTRY_ID = "SELECT Cities.id, Cities.city_name, Cities.country_id FROM Cities "
+			+ "INNER JOIN Countries ON Countries.id=Cities.country_id WHERE Countries.id IN(?)";
 	private final static String DELETE_CITY_BY_ID = "DELETE FROM Cities WHERE id=?";
 	private final static String INSERT_CITY = "INSERT INTO Cities (city_name, country_id) VALUES (?, ?)";
 	private final static String UPDATE_CITY = "UPDATE Cities SET city_name = ?, country_id = ? WHERE (id = ?)";
@@ -163,41 +160,6 @@ public class CityDAO implements ICityDAO {
 	}
 
 	@Override
-	public List<User> getAllUsersByCityId(Long id) {
-		List<User> users = new ArrayList<>();
-		Connection connection = null;
-		PreparedStatement statement = null;
-		ResultSet resultSet = null;
-		try {
-			connection = ConnectionPool.getInstance().takeConnection();
-			statement = connection.prepareStatement(GET_ALL_USERS_BY_CITY_ID);
-			statement.setLong(1, id);
-			resultSet = statement.executeQuery();
-			while (resultSet.next()) {
-				User user = new User();
-				Profile profile = new Profile();
-				City city = new City();
-				user.setId(resultSet.getLong("id"));
-				profile.setId(resultSet.getLong("profile_id"));
-				user.setProfile(profile);
-				user.setFirstName(resultSet.getString("first_name"));
-				user.setLastName(resultSet.getString("last_name"));
-				user.setPhoneNumber(resultSet.getString("phone_number"));
-				city.setId(resultSet.getLong("city_id"));
-				user.setCity(city);
-				users.add(user);
-			}
-		} catch (SQLException e) {
-			logger.log(Level.ERROR, "Request from the data base error", e);
-		} finally {
-			IAbstractDAO.closeResultSet(resultSet);
-			IAbstractDAO.closePreparedStatement(statement);
-			ConnectionPool.getInstance().releaseConnection(connection);
-		}
-		return users;
-	}
-
-	@Override
 	public City getCityByUserId(Long id) {
 		City city = new City();
 		Connection connection = null;
@@ -219,4 +181,35 @@ public class CityDAO implements ICityDAO {
 		}
 		return city;
 	}
+	
+	@Override
+	public List<City> getAllCitiesByCountryId(Long id) {
+		List<City> cities = new ArrayList<>();
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet resultSet = null;
+		try {
+			connection = ConnectionPool.getInstance().takeConnection();
+			statement = connection.prepareStatement(GET_ALL_CITIES_BY_COUNTRY_ID);
+			statement.setLong(1, id);
+			resultSet = statement.executeQuery();
+			while (resultSet.next()) {
+				Country country = new Country();
+				City city = new City();
+				city.setId(resultSet.getLong("id"));
+				city.setCityName(resultSet.getString("city_name"));
+				country.setId(resultSet.getLong("country_id"));
+				city.setCountry(country);
+				cities.add(city);
+			}
+		} catch (SQLException e) {
+			logger.log(Level.ERROR, "Request from the data base error", e);
+		} finally {
+			IAbstractDAO.closeResultSet(resultSet);
+			IAbstractDAO.closePreparedStatement(statement);
+			ConnectionPool.getInstance().releaseConnection(connection);
+		}
+		return cities;
+	}
+
 }

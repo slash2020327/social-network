@@ -31,6 +31,8 @@ public class UserDAO implements IUserDAO {
 			+ "INNER JOIN Friendship ON Friendship.user1_id=Users.id WHERE Friendship.id IN(?)";
 	private final static String GET_USER_TWO_BY_FRIENDSHIP_ID = "SELECT Users.id, Users.profile_id, Users.first_name, Users.last_name, Users.phone_number, Users.city_id FROM Users "
 			+ "INNER JOIN Friendship ON Friendship.user2_id=Users.id WHERE Friendship.id IN(?)";
+	private final static String GET_ALL_USERS_BY_CITY_ID = "SELECT Users.id, Users.profile_id, Users.first_name, Users.last_name, Users.phone_number, Users.city_id FROM Users "
+			+ "INNER JOIN Cities ON Cities.id=Users.city_id WHERE Cities.id IN(?)";
 	private final static String INSERT_USER = "INSERT INTO Users (profile_id, first_name, last_name, phone_number, city_id) VALUES (?, ?, ?, ?, ?)";
 	private final static String UPDATE_USER = "UPDATE Users SET profile_id = ?, first_name = ?, last_name = ?, phone_number = ?, city_id = ? WHERE (id = ?)";
 	private static Logger logger = LogManager.getLogger();
@@ -172,6 +174,41 @@ public class UserDAO implements IUserDAO {
 		}
 	}
 
+	@Override
+	public List<User> getAllUsersByCityId(Long id) {
+		List<User> users = new ArrayList<>();
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet resultSet = null;
+		try {
+			connection = ConnectionPool.getInstance().takeConnection();
+			statement = connection.prepareStatement(GET_ALL_USERS_BY_CITY_ID);
+			statement.setLong(1, id);
+			resultSet = statement.executeQuery();
+			while (resultSet.next()) {
+				User user = new User();
+				Profile profile = new Profile();
+				City city = new City();
+				user.setId(resultSet.getLong("id"));
+				profile.setId(resultSet.getLong("profile_id"));
+				user.setProfile(profile);
+				user.setFirstName(resultSet.getString("first_name"));
+				user.setLastName(resultSet.getString("last_name"));
+				user.setPhoneNumber(resultSet.getString("phone_number"));
+				city.setId(resultSet.getLong("city_id"));
+				user.setCity(city);
+				users.add(user);
+			}
+		} catch (SQLException e) {
+			logger.log(Level.ERROR, "Request from the data base error", e);
+		} finally {
+			IAbstractDAO.closeResultSet(resultSet);
+			IAbstractDAO.closePreparedStatement(statement);
+			ConnectionPool.getInstance().releaseConnection(connection);
+		}
+		return users;
+	}
+	
 	@Override
 	public User getUserByDialogId(Long id) {
 		User user = new User();

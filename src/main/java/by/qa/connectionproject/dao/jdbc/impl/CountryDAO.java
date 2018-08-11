@@ -6,15 +6,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import by.qa.connectionproject.connection.ConnectionPool;
 import by.qa.connectionproject.dao.IAbstractDAO;
 import by.qa.connectionproject.dao.ICountryDAO;
-import by.qa.connectionproject.models.City;
 import by.qa.connectionproject.models.Country;
 
 public class CountryDAO implements ICountryDAO {
@@ -23,8 +20,6 @@ public class CountryDAO implements ICountryDAO {
 	private final static String GET_ALL_COUNTRIES = "SELECT * FROM Countries";
 	private final static String GET_COUNTRY_BY_CITY_ID = "SELECT Countries.id, Countries.country_name FROM Countries "
 			+ "INNER JOIN Cities ON Cities.country_id=Countries.id WHERE Cities.id IN(?)";
-	private final static String GET_ALL_CITIES_BY_COUNTRY_ID = "SELECT Cities.id, Cities.city_name, Cities.country_id FROM Cities "
-			+ "INNER JOIN Countries ON Countries.id=Cities.country_id WHERE Countries.id IN(?)";
 	private final static String DELETE_COUNTRY_BY_ID = "DELETE FROM Countries WHERE id=?";
 	private final static String INSERT_COUNTRY = "INSERT INTO Countries (country_name) VALUES (?)";
 	private final static String UPDATE_COUNTRY = "UPDATE Countries SET country_name = ? WHERE (id = ?)";
@@ -154,36 +149,6 @@ public class CountryDAO implements ICountryDAO {
 			IAbstractDAO.closePreparedStatement(statement);
 			ConnectionPool.getInstance().releaseConnection(connection);
 		}
-	}
-
-	@Override
-	public List<City> getAllCitiesByCountryId(Long id) {
-		List<City> cities = new ArrayList<>();
-		Connection connection = null;
-		PreparedStatement statement = null;
-		ResultSet resultSet = null;
-		try {
-			connection = ConnectionPool.getInstance().takeConnection();
-			statement = connection.prepareStatement(GET_ALL_CITIES_BY_COUNTRY_ID);
-			statement.setLong(1, id);
-			resultSet = statement.executeQuery();
-			while (resultSet.next()) {
-				Country country = new Country();
-				City city = new City();
-				city.setId(resultSet.getLong("id"));
-				city.setCityName(resultSet.getString("city_name"));
-				country.setId(resultSet.getLong("country_id"));
-				city.setCountry(country);
-				cities.add(city);
-			}
-		} catch (SQLException e) {
-			logger.log(Level.ERROR, "Request from the data base error", e);
-		} finally {
-			IAbstractDAO.closeResultSet(resultSet);
-			IAbstractDAO.closePreparedStatement(statement);
-			ConnectionPool.getInstance().releaseConnection(connection);
-		}
-		return cities;
 	}
 
 	@Override

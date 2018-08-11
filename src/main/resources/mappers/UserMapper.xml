@@ -2,7 +2,7 @@
 <!DOCTYPE mapper
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="by.qa.connectionproject.dao.IUserDAO">
+<mapper namespace="by.qa.connectionproject.service.IUserService">
 	<resultMap id="user"
 		type="by.qa.connectionproject.models.User">
 		<id property="id" column="id" />
@@ -30,7 +30,7 @@
 		<id property="id" column="id" />
 		<result property="countryName" column="country_name" />
 	</resultMap>
-	<select id="getEntityById" parameterType="java.lang.Long" resultMap="user">
+	<select id="getUserById" parameterType="java.lang.Long" resultMap="user">
 		SELECT * FROM Users INNER JOIN Profiles ON Profiles.id = Users.profile_id LEFT JOIN Cities ON Cities.id=Users.city_id LEFT JOIN Countries ON Countries.id=Cities.country_id WHERE Users.id = #{id}
 	</select>
 	<select id="getAll" resultMap="user">

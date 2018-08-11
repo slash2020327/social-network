@@ -2,14 +2,14 @@
 <!DOCTYPE mapper
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="by.qa.connectionproject.dao.IAlbumDAO">
+<mapper namespace="by.qa.connectionproject.service.IAlbumService">
 	<resultMap id="album"
 		type="by.qa.connectionproject.models.Album">
 		<id property="id" column="id" />
 		<result property="albumName" column="album_name" />
 		<result property="profileId" column="profile_id" />
 	</resultMap>
-	<select id="getEntityById" parameterType="java.lang.Long"
+	<select id="getAlbumById" parameterType="java.lang.Long"
 		resultMap="album"> 
 		SELECT * FROM Albums WHERE id = #{id}
 	</select>
